@@ -1,0 +1,530 @@
+[
+  {
+    "id": "a2-desert-memory",
+    "name": "A2 Desert Memory"
+  },
+  {
+    "id": "ace-ember-legacy",
+    "name": "Ace Ember Legacy"
+  },
+  {
+    "id": "aerith-flower-sanctuary",
+    "name": "Aerith Flower Sanctuary"
+  },
+  {
+    "id": "ahri-spirit-blossom",
+    "name": "Ahri Spirit Blossom"
+  },
+  {
+    "id": "aizen-celestial-mirror",
+    "name": "Aizen Celestial Mirror"
+  },
+  {
+    "id": "akatsuki-rainfall",
+    "name": "Akatsuki Rainfall"
+  },
+  {
+    "id": "aki-snow-reverie",
+    "name": "Aki Snow Reverie"
+  },
+  {
+    "id": "akira-midnight",
+    "name": "Akira Midnight"
+  },
+  {
+    "id": "alchemy-brothers",
+    "name": "Alchemy Brothers"
+  },
+  {
+    "id": "aloy-copper-wilds",
+    "name": "Aloy Copper Wilds"
+  },
+  {
+    "id": "anime-nexus",
+    "name": "Anime Nexus"
+  },
+  {
+    "id": "apothecary-jade-court",
+    "name": "Apothecary Jade Court"
+  },
+  {
+    "id": "artorias-abyss-watch",
+    "name": "Artorias Abyss Watch"
+  },
+  {
+    "id": "ashen-fire",
+    "name": "Ashen Fire"
+  },
+  {
+    "id": "astarion-silver-velvet",
+    "name": "Astarion Silver Velvet"
+  },
+  {
+    "id": "bebop-after-hours",
+    "name": "Bebop After Hours"
+  },
+  {
+    "id": "berserk-moonlit-resolve",
+    "name": "Berserk Moonlit Resolve"
+  },
+  {
+    "id": "beru-night-hunt",
+    "name": "Beru Night Hunt"
+  },
+  {
+    "id": "brook-soul-serenade",
+    "name": "Brook Soul Serenade"
+  },
+  {
+    "id": "butterfly-dream",
+    "name": "Butterfly Dream"
+  },
+  {
+    "id": "byakuya-blossom-night",
+    "name": "Byakuya Blossom Night"
+  },
+  {
+    "id": "cha-hae-in-radiance",
+    "name": "Cha Hae In Radiance"
+  },
+  {
+    "id": "chainsaw-neon",
+    "name": "Chainsaw Neon"
+  },
+  {
+    "id": "ciri-emerald-rift",
+    "name": "Ciri Emerald Rift"
+  },
+  {
+    "id": "clive-phoenix-ash",
+    "name": "Clive Phoenix Ash"
+  },
+  {
+    "id": "commander-shepard-starlight",
+    "name": "Commander Shepard Starlight"
+  },
+  {
+    "id": "crimson-shrine",
+    "name": "Crimson Shrine"
+  },
+  {
+    "id": "dante-crimson-encore",
+    "name": "Dante Crimson Encore"
+  },
+  {
+    "id": "doom-argent-fury",
+    "name": "Doom Argent Fury"
+  },
+  {
+    "id": "elden-gold",
+    "name": "Elden Gold"
+  },
+  {
+    "id": "eren-last-horizon",
+    "name": "Eren Last Horizon"
+  },
+  {
+    "id": "erwin-final-charge",
+    "name": "Erwin Final Charge"
+  },
+  {
+    "id": "eva-terminal",
+    "name": "Eva Terminal"
+  },
+  {
+    "id": "fern-violet-library",
+    "name": "Fern Violet Library"
+  },
+  {
+    "id": "frieren-starlit-journey",
+    "name": "Frieren Starlit Journey"
+  },
+  {
+    "id": "gaara-desert-stars",
+    "name": "Gaara Desert Stars"
+  },
+  {
+    "id": "garrus-archangel-watch",
+    "name": "Garrus Archangel Watch"
+  },
+  {
+    "id": "gear-five-sky",
+    "name": "Gear Five Sky"
+  },
+  {
+    "id": "geralt-silver-hunt",
+    "name": "Geralt Silver Hunt"
+  },
+  {
+    "id": "ghost-of-tsushima",
+    "name": "Ghost of Tsushima"
+  },
+  {
+    "id": "giyu-still-water",
+    "name": "Giyu Still Water"
+  },
+  {
+    "id": "gojo-hollow-purple",
+    "name": "Gojo Hollow Purple"
+  },
+  {
+    "id": "hidden-leaf-dawn",
+    "name": "Hidden Leaf Dawn"
+  },
+  {
+    "id": "hinata-lavender-moon",
+    "name": "Hinata Lavender Moon"
+  },
+  {
+    "id": "hokage-quiet-evening",
+    "name": "Hokage Quiet Evening"
+  },
+  {
+    "id": "hollow-knight-blue-depths",
+    "name": "Hollow Knight Blue Depths"
+  },
+  {
+    "id": "hornet-silk-cathedral",
+    "name": "Hornet Silk Cathedral"
+  },
+  {
+    "id": "howl-starfall-castle",
+    "name": "Howl Starfall Castle"
+  },
+  {
+    "id": "hunter-electric",
+    "name": "Hunter Electric"
+  },
+  {
+    "id": "hylian-horizon",
+    "name": "Hylian Horizon"
+  },
+  {
+    "id": "igris-crimson-oath",
+    "name": "Igris Crimson Oath"
+  },
+  {
+    "id": "infinite-void",
+    "name": "Infinite Void"
+  },
+  {
+    "id": "jeju-shadow-landing",
+    "name": "Jeju Shadow Landing"
+  },
+  {
+    "id": "jill-sapphire-outbreak",
+    "name": "Jill Sapphire Outbreak"
+  },
+  {
+    "id": "jinwoo-neon-seoul",
+    "name": "Jinwoo Neon Seoul"
+  },
+  {
+    "id": "jinx-electric-playground",
+    "name": "Jinx Electric Playground"
+  },
+  {
+    "id": "kaine-lunar-tears",
+    "name": "Kaine Lunar Tears"
+  },
+  {
+    "id": "kakashi-silver-rain",
+    "name": "Kakashi Silver Rain"
+  },
+  {
+    "id": "kratos-northern-dawn",
+    "name": "Kratos Northern Dawn"
+  },
+  {
+    "id": "lady-maria-blood-moon",
+    "name": "Lady Maria Blood Moon"
+  },
+  {
+    "id": "legends-last-campfire",
+    "name": "Legends Last Campfire"
+  },
+  {
+    "id": "leon-midnight-extraction",
+    "name": "Leon Midnight Extraction"
+  },
+  {
+    "id": "lightning-rose-storm",
+    "name": "Lightning Rose Storm"
+  },
+  {
+    "id": "madara-crimson-eclipse",
+    "name": "Madara Crimson Eclipse"
+  },
+  {
+    "id": "makima-amber-gaze",
+    "name": "Makima Amber Gaze"
+  },
+  {
+    "id": "malenia-scarlet-bloom",
+    "name": "Malenia Scarlet Bloom"
+  },
+  {
+    "id": "megumi-moon-garden",
+    "name": "Megumi Moon Garden"
+  },
+  {
+    "id": "midgar-requiem",
+    "name": "Midgar Requiem"
+  },
+  {
+    "id": "mikasa-red-scarf",
+    "name": "Mikasa Red Scarf"
+  },
+  {
+    "id": "minato-golden-flash",
+    "name": "Minato Golden Flash"
+  },
+  {
+    "id": "mitsuri-sakura-steel",
+    "name": "Mitsuri Sakura Steel"
+  },
+  {
+    "id": "mob-psychic-aurora",
+    "name": "Mob Psychic Aurora"
+  },
+  {
+    "id": "monarch-eclipse",
+    "name": "Monarch Eclipse"
+  },
+  {
+    "id": "monarch-winter-gate",
+    "name": "Monarch Winter Gate"
+  },
+  {
+    "id": "mononoke-ancient-grove",
+    "name": "Mononoke Ancient Grove"
+  },
+  {
+    "id": "muichiro-mist-valley",
+    "name": "Muichiro Mist Valley"
+  },
+  {
+    "id": "nami-tangerine-seas",
+    "name": "Nami Tangerine Seas"
+  },
+  {
+    "id": "nexus-all-stars",
+    "name": "Nexus All Stars"
+  },
+  {
+    "id": "nezuko-bamboo-moon",
+    "name": "Nezuko Bamboo Moon"
+  },
+  {
+    "id": "night-city-ronin",
+    "name": "Night City Ronin"
+  },
+  {
+    "id": "nobara-rose-steel",
+    "name": "Nobara Rose Steel"
+  },
+  {
+    "id": "noctis-royal-midnight",
+    "name": "Noctis Royal Midnight"
+  },
+  {
+    "id": "one-winged-night",
+    "name": "One Winged Night"
+  },
+  {
+    "id": "orbital-sakura-garden",
+    "name": "Orbital Sakura Garden"
+  },
+  {
+    "id": "persona-golden-train",
+    "name": "Persona Golden Train"
+  },
+  {
+    "id": "persona-moonlit-hour",
+    "name": "Persona Moonlit Hour"
+  },
+  {
+    "id": "persona-velvet-rain",
+    "name": "Persona Velvet Rain"
+  },
+  {
+    "id": "pirate-king-sunset",
+    "name": "Pirate King Sunset"
+  },
+  {
+    "id": "pochita-cozy-den",
+    "name": "Pochita Cozy Den"
+  },
+  {
+    "id": "power-scarlet-mischief",
+    "name": "Power Scarlet Mischief"
+  },
+  {
+    "id": "raiden-violet-eternity",
+    "name": "Raiden Violet Eternity"
+  },
+  {
+    "id": "ranni-lunar-pact",
+    "name": "Ranni Lunar Pact"
+  },
+  {
+    "id": "rengoku-burning-resolve",
+    "name": "Rengoku Burning Resolve"
+  },
+  {
+    "id": "robin-midnight-bloom",
+    "name": "Robin Midnight Bloom"
+  },
+  {
+    "id": "rukia-frozen-petals",
+    "name": "Rukia Frozen Petals"
+  },
+  {
+    "id": "saiyan-ascension",
+    "name": "Saiyan Ascension"
+  },
+  {
+    "id": "samurai-champloo-drift",
+    "name": "Samurai Champloo Drift"
+  },
+  {
+    "id": "samus-phazon-orbit",
+    "name": "Samus Phazon Orbit"
+  },
+  {
+    "id": "sanji-blue-inferno",
+    "name": "Sanji Blue Inferno"
+  },
+  {
+    "id": "sasuke-violet-tempest",
+    "name": "Sasuke Violet Tempest"
+  },
+  {
+    "id": "sekiro-autumn-temple",
+    "name": "Sekiro Autumn Temple"
+  },
+  {
+    "id": "shadow-monarch",
+    "name": "Shadow Monarch"
+  },
+  {
+    "id": "shadow-sword-alliance",
+    "name": "Shadow Sword Alliance"
+  },
+  {
+    "id": "shadowheart-moon-prayer",
+    "name": "Shadowheart Moon Prayer"
+  },
+  {
+    "id": "shanks-red-horizon",
+    "name": "Shanks Red Horizon"
+  },
+  {
+    "id": "silver-hair-society",
+    "name": "Silver Hair Society"
+  },
+  {
+    "id": "spike-mars-sunset",
+    "name": "Spike Mars Sunset"
+  },
+  {
+    "id": "spirited-lantern-river",
+    "name": "Spirited Lantern River"
+  },
+  {
+    "id": "stark-autumn-road",
+    "name": "Stark Autumn Road"
+  },
+  {
+    "id": "substitute-soul",
+    "name": "Substitute Soul"
+  },
+  {
+    "id": "sun-breathing",
+    "name": "Sun Breathing"
+  },
+  {
+    "id": "tengen-festival-night",
+    "name": "Tengen Festival Night"
+  },
+  {
+    "id": "three-sword-storm",
+    "name": "Three Sword Storm"
+  },
+  {
+    "id": "thunderclap",
+    "name": "Thunderclap"
+  },
+  {
+    "id": "tidus-ocean-dream",
+    "name": "Tidus Ocean Dream"
+  },
+  {
+    "id": "toji-midnight-blade",
+    "name": "Toji Midnight Blade"
+  },
+  {
+    "id": "totoro-rain-shelter",
+    "name": "Totoro Rain Shelter"
+  },
+  {
+    "id": "trafalgar-azure-room",
+    "name": "Trafalgar Azure Room"
+  },
+  {
+    "id": "twilight-wolf-guardian",
+    "name": "Twilight Wolf Guardian"
+  },
+  {
+    "id": "twin-dragons",
+    "name": "Twin Dragons"
+  },
+  {
+    "id": "uchiha-moon",
+    "name": "Uchiha Moon"
+  },
+  {
+    "id": "urahara-emerald-haze",
+    "name": "Urahara Emerald Haze"
+  },
+  {
+    "id": "vash-desert-halo",
+    "name": "Vash Desert Halo"
+  },
+  {
+    "id": "vergil-azure-judgment",
+    "name": "Vergil Azure Judgment"
+  },
+  {
+    "id": "violet-letter-garden",
+    "name": "Violet Letter Garden"
+  },
+  {
+    "id": "wings-of-freedom",
+    "name": "Wings of Freedom"
+  },
+  {
+    "id": "yamato-sacred-snow",
+    "name": "Yamato Sacred Snow"
+  },
+  {
+    "id": "yorha-rain",
+    "name": "YorHa Rain"
+  },
+  {
+    "id": "yuji-black-flash",
+    "name": "Yuji Black Flash"
+  },
+  {
+    "id": "yuta-cursed-promise",
+    "name": "Yuta Cursed Promise"
+  },
+  {
+    "id": "zack-sapphire-legacy",
+    "name": "Zack Sapphire Legacy"
+  },
+  {
+    "id": "zelda-silent-princess",
+    "name": "Zelda Silent Princess"
+  }
+]

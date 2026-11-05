@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.xjaike.theme-collection",
+  "name": "Jake Sidequests Themes",
+  "version": "1.0.0",
+  "author": "xJaike",
+  "description": "Browse, preview and install 132 anime and gaming themes from a searchable picker.",
+  "kinds": ["bar-widget"],
+  "entryPoints": {"barWidget": "ThemeCollection.qml"},
+  "barWidget": {
+    "displayName": "Jake Sidequests Themes",
+    "description": "Open the searchable theme collection",
+    "category": "Appearance",
+    "defaultSection": "right",
+    "allowMultiple": false
+  }
+}
