@@ -4,13 +4,13 @@
 
 ## Install
 
-Requires Omarchy Quattro with Quickshell, Python 3.11+, Gum, an installed terminal, and xdg-utils. These are local system dependencies; the plugin does not install packages.
+Requires Omarchy Quattro with Quickshell, Python 3.11+, Gum, fzf, ImageMagick, a Sixel-capable terminal (such as Foot), and xdg-utils. These are local system dependencies; the plugin does not install packages.
 
 ```sh
 omarchy plugin add https://github.com/xJaike/jakesidequests-omarchy-themes --enable
 ```
 
-Click the paintbrush, type to search, and press Enter to choose a theme and action. Escape goes back or closes the picker. Wallpaper previews open in your default image viewer. The picker currently uses English; the bar tooltip follows Omarchy's translation fallback.
+Click the paintbrush and type to search. Highlight a theme to see its wallpaper and color palette as a pixel-resolution Sixel image in the preview pane; browsing does not apply the theme. The preview moves below the list in narrow terminals. Press Enter to choose an action. Escape goes back or closes the picker. The Preview wallpaper action opens the full image in your default image viewer. The picker currently uses English; the bar tooltip follows Omarchy's translation fallback.
 
 Run the picker directly from a checkout:
 
@@ -36,7 +36,7 @@ Removing the plugin leaves installed themes and backups in place. Switch to anot
 
 ## Contents and licensing
 
-See [catalog.json](catalog.json) for the included themes. Each theme has its palette, generated wallpaper, and generation prompt. The two pre-existing wallpaper-only folders (`cloud-vs-rufus-wallpaper` and `wallhaven-ex136k`) are excluded from the published plugin.
+See [catalog.json](catalog.json) for the included themes. Each theme has its palette, generated wallpaper, and generation prompt. Palettes are derived from each theme's own wallpaper by `tools/derive_palettes.py`: the background takes the wallpaper's shadow tones, the accents come from its most prominent colors (guided by the colors named in the prompt), and the terminal colors lean toward the wallpaper while red, green, blue and the rest stay recognisable. Anime Nexus and Shadow Monarch keep their hand-tuned palettes. Rerun it with `python tools/derive_palettes.py [THEME ...]` after changing a wallpaper. The two pre-existing wallpaper-only folders (`cloud-vs-rufus-wallpaper` and `wallhaven-ex136k`) are excluded from the published plugin.
 
 Plugin code is MIT licensed; see [LICENSE](LICENSE). Generated wallpapers and theme names reference existing fictional properties. No ownership of those characters, names, or trademarks is claimed. No license to third-party intellectual property is granted by the code license. Wallpaper prompts are included for provenance.
 

@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-"""Offline picker for the bundled theme catalog. No shell interpolation."""
+"""Offline picker for the bundled theme catalog. Local theme browsing with wallpaper previews."""
 import argparse
+import fcntl
 import json
 import os
 from pathlib import Path
 import re
 import shutil
+import shlex
 import subprocess
+import sys
+import struct
+import termios
 import tempfile
 import tomllib
 
@@ -80,25 +85,80 @@ def choose(options, header):
     return result.stdout.strip() if result.returncode == 0 else None
 
 
+def preview(slug):
+    if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', slug):
+        raise ValueError('Invalid theme identifier')
+    source = ROOT / slug
+    colors = tomllib.loads((source / 'colors.toml').read_text())
+    width = max(1, min(120, int(os.environ.get('FZF_PREVIEW_COLUMNS', '60'))))
+    height = max(2, min(80, int(os.environ.get('FZF_PREVIEW_LINES', '30')) - 7))
+    wallpaper = next(iter(sorted((source / 'backgrounds').glob('*'))), None)
+    print(slug.replace('-', ' ').title(), flush=True)
+    for name in ('background', 'foreground', 'accent', 'red', 'green', 'blue'):
+        value = colors.get(name, '#000000')
+        if re.fullmatch(r'#[0-9a-fA-F]{6}', value):
+            rgb = ';'.join(str(int(value[i:i + 2], 16)) for i in (1, 3, 5))
+            print(f'\033[48;2;{rgb}m  \033[0m {name}: {value}')
+    if wallpaper:
+        # Use terminal pixel dimensions, rather than one pixel per text cell.
+        cell_width, cell_height = terminal_cell_size()
+        result = subprocess.run([
+            'magick', str(wallpaper), '-thumbnail',
+            f'{width * cell_width}x{height * cell_height}',
+            '-colors', '256', 'sixel:-',
+        ], stdout=subprocess.PIPE, check=True)
+        sys.stdout.flush()
+        sys.stdout.buffer.write(result.stdout + b'\n')
+        sys.stdout.buffer.flush()
+
+
+def terminal_cell_size():
+    try:
+        with open('/dev/tty', 'rb') as terminal:
+            rows, columns, pixels_x, pixels_y = struct.unpack(
+                'HHHH', fcntl.ioctl(terminal, termios.TIOCGWINSZ, bytes(8)))
+        if rows and columns and pixels_x and pixels_y:
+            return max(1, pixels_x // columns), max(1, pixels_y // rows)
+    except OSError:
+        pass
+    return 10, 20
+
+
+
+def choose_theme(items):
+    command = f'{shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --preview {{1}}'
+    env = dict(os.environ, FZF_DEFAULT_OPTS='', FZF_DEFAULT_OPTS_FILE='')
+    result = subprocess.run([
+        'fzf', '--delimiter', '\t', '--with-nth', '2..', '--layout', 'reverse',
+        '--header', f'Jake Sidequests · {len(items)} themes · Enter: actions · Esc: close',
+        '--preview', command, '--preview-window', 'right,60%,<100(down,65%)',
+    ], input='\n'.join(f"{item['id']}\t{item['name']}" for item in items),
+        text=True, stdout=subprocess.PIPE, env=env)
+    return result.stdout.strip().split('\t', 1)[0] if result.returncode == 0 else None
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--list', action='store_true', help='List themes without modifying anything')
+    parser.add_argument('--preview', metavar='THEME', help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.preview:
+        preview(args.preview)
+        return
     items = catalog()
     if args.list:
         print('\n'.join(item['id'] for item in items))
         return
-    for command in ('gum', 'omarchy'):
+    for command in ('gum', 'omarchy', 'fzf', 'magick'):
         if not shutil.which(command):
             parser.exit(1, f'Missing dependency: {command}\n')
-    labels = {f"{item['name']}  [{item['id']}]": item['id'] for item in items}
+    labels = {item['id']: item['name'] for item in items}
     while True:
-        selected = choose(labels, f'Jake Sidequests · {len(items)} themes · Esc to close')
-        if selected not in labels:
+        slug = choose_theme(items)
+        if slug not in labels:
             return
-        slug = labels[selected]
         while True:
-            action = choose(['Preview wallpaper', 'Install and apply', 'Install only', 'Back'], selected)
+            action = choose(['Preview wallpaper', 'Install and apply', 'Install only', 'Back'], labels[slug])
             if action in (None, 'Back'):
                 break
             if action == 'Preview wallpaper':

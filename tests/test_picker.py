@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+import io
 from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('picker', Path(__file__).parents[1] / 'theme_picker.py')
@@ -60,6 +62,34 @@ class InstallTests(unittest.TestCase):
         (self.source / 'sample/link').symlink_to('/etc/passwd')
         with self.assertRaises(ValueError):
             picker.catalog()
+
+
+class PreviewTests(unittest.TestCase):
+    def test_preview_rejects_path_traversal(self):
+        with self.assertRaises(ValueError):
+            picker.preview('../outside')
+
+    def test_picker_returns_identifier_and_keeps_terminal_output(self):
+        with patch.object(picker.subprocess, 'run') as run:
+            run.return_value.returncode = 0
+            run.return_value.stdout = 'sample\tSample Theme\n'
+            self.assertEqual(picker.choose_theme([{'id': 'sample', 'name': 'Sample Theme'}]), 'sample')
+        self.assertNotIn('stderr', run.call_args.kwargs)
+        self.assertIn('--preview', run.call_args.args[0])
+
+    def test_wallpaper_and_palette_render_at_preview_size(self):
+        with patch.dict(picker.os.environ, FZF_PREVIEW_COLUMNS='2', FZF_PREVIEW_LINES='9'):
+            with patch.object(picker.subprocess, 'run') as run:
+                run.return_value.stdout = b'\x1bPqimage\x1b\\'
+                output = io.TextIOWrapper(io.BytesIO(), encoding='utf-8')
+                with redirect_stdout(output), patch.object(picker, 'terminal_cell_size', return_value=(10, 20)):
+                    picker.preview('a2-desert-memory')
+        rendered = output.buffer.getvalue()
+        self.assertIn(b'\x1bPqimage', rendered)
+        background = picker.tomllib.loads((picker.ROOT / 'a2-desert-memory/colors.toml').read_text())['background']
+        self.assertIn(f'background: {background}'.encode(), rendered)
+        self.assertIn('20x40', run.call_args.args[0])
+        self.assertIn('sixel:-', run.call_args.args[0])
 
 
 if __name__ == '__main__':
