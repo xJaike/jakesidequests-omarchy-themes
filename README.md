@@ -2,6 +2,14 @@
 
 132 anime and gaming inspired Omarchy themes with generated wallpapers. A paintbrush button in the Omarchy bar opens a full-screen terminal picker: a large mock-desktop preview of the highlighted theme above a filmstrip of wallpapers, with filters by series, color, favorites and recent themes.
 
+![The picker on Gojo Hollow Purple: filter chips, a mock-desktop preview, the terminal sample with its palette showroom, and the wallpaper filmstrip](docs/screenshots/gojo-hollow-purple.png)
+
+The whole picker re-tints to whichever theme is highlighted:
+
+| Rengoku Burning Resolve | Geralt Silver Hunt |
+|---|---|
+| ![The picker tinted to Rengoku Burning Resolve](docs/screenshots/rengoku-burning-resolve.png) | ![The picker tinted to Geralt Silver Hunt](docs/screenshots/geralt-silver-hunt.png) |
+
 ## Install
 
 Requires Omarchy Quattro with Quickshell, Python 3.11+, ImageMagick, and a Sixel-capable terminal (such as Foot). These are local system dependencies; the plugin does not install packages.
