@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import tomllib
 
@@ -168,6 +169,10 @@ class State:
         del self.recent[self.RECENT_LIMIT:]
 
 
+def cache_dir():
+    return Path(os.environ.get('XDG_CACHE_HOME', str(Path.home() / '.cache'))) / 'jake-sidequests-themes'
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--list', action='store_true', help='List themes without modifying anything')
@@ -175,10 +180,27 @@ def main():
     items = catalog()
     if args.list:
         print('\n'.join(item['id'] for item in items))
+        return
+    if not shutil.which('omarchy'):
+        raise SystemExit('Missing dependency: omarchy')
+    sys.path.insert(0, str(ROOT))
+    import previews
+    import tui
+    ids = {item['id'] for item in items}
+    state = State.load(state_path(), ids)
+    installed = {path.name for path in themes_dir().glob('*') if path.is_dir()} & ids
+    current = current_theme()
+    themes = [tui.Theme(item['id'], item['name'], item['series'], item['color'], palette(item['id'])) for item in items]
+    model = tui.Model(themes=themes, favorites=state.favorites, recent=state.recent, current=current,
+                      installed=installed)
+    if current:
+        model.select_id(current)
+    tui.run(model, previews.Previews(ROOT, cache_dir(), palette), sys.modules[__name__], state)
 
 
 if __name__ == '__main__':
     try:
         main()
-    except (OSError, ValueError, RuntimeError) as error:
-        raise SystemExit(str(error))
+    except Exception as error:  # printed after the terminal has been restored
+        print(f'{type(error).__name__}: {error}', file=sys.stderr)
+        raise SystemExit(1)

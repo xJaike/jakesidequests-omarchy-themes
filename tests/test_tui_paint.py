@@ -76,6 +76,13 @@ class PaintTests(unittest.TestCase):
         out = tui.paint_stage(model, self.layout, FakeImages({('stage', 'a')}))
         self.assertIn(b'\x1bPqstage-a', out)
 
+    def test_paint_thumbs_draws_each_cached_thumb_once(self):
+        model, drawn = make_model(), set()
+        images = FakeImages({('thumb', 'a'), ('thumb', 'b')})
+        out = tui.paint_thumbs(model, self.layout, images, drawn)
+        self.assertEqual((out.count(b'\x1bPqthumb-'), drawn), (2, {'a', 'b'}))
+        self.assertEqual(tui.paint_thumbs(model, self.layout, images, drawn), b'')
+
     def test_tiny_empty_and_no_sixel_messages(self):
         model = make_model()
         tiny = tui.compute_layout(50, 30, 10, 20)

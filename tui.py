@@ -1,5 +1,16 @@
 """Full-screen terminal stage + filmstrip browser for the theme collection."""
 from dataclasses import dataclass, field
+import fcntl
+import os
+import random
+import re
+import select
+import selectors
+import signal
+import struct
+import termios
+import time
+import tty
 
 # Same values and order as tools/derive_palettes.COLOR_FAMILIES.
 COLOR_FAMILIES = ('Crimson', 'Ember', 'Gold', 'Jade', 'Ocean', 'Violet', 'Rose', 'Silver')
@@ -556,3 +567,198 @@ def wanted_images(model, layout):
     start = film_start(model, layout)
     jobs += [('thumb', theme.id, *layout.thumb_px) for theme in themes[start:start + len(layout.film)]]
     return jobs
+
+
+def paint_thumbs(model, layout, images, drawn):
+    """Thumbnails cached now and not yet in `drawn`, painted over their placeholders; `drawn` is updated."""
+    themes, start, out = model.filtered(), film_start(model, layout), []
+    for k, card in enumerate(layout.film):
+        if start + k < len(themes) and themes[start + k].id not in drawn:
+            data = images.get('thumb', themes[start + k].id, *layout.thumb_px)
+            if data is not None:
+                drawn.add(themes[start + k].id)
+                out += [goto(card.x, card.y), RESET, data]
+    return _encode(out)
+
+
+class NoImages:
+    """Image source used for the instant repaint on every key: placeholders only."""
+
+    @staticmethod
+    def get(kind, slug, w, h):
+        return None
+
+
+# ---------- terminal ----------
+
+ENTER_SCREEN = b'\x1b[?1049h\x1b[?25l\x1b[?1000h\x1b[?1006h'
+LEAVE_SCREEN = b'\x1b[?1006l\x1b[?1000l\x1b[0m\x1b[?25h\x1b[?1049l'
+
+
+def _raise_exit(signum, frame):
+    raise SystemExit(128 + signum)
+
+
+class Screen:
+    """Alternate screen, raw input and mouse reporting; always restored on exit."""
+
+    def __init__(self, fd_in, fd_out):
+        self.fd_in, self.fd_out = fd_in, fd_out
+
+    def __enter__(self):
+        self.saved = termios.tcgetattr(self.fd_in)
+        self.handlers = {sig: signal.signal(sig, _raise_exit) for sig in (signal.SIGTERM, signal.SIGHUP)}
+        tty.setraw(self.fd_in)
+        os.write(self.fd_out, ENTER_SCREEN)
+        return self
+
+    def __exit__(self, *exc):
+        try:
+            os.write(self.fd_out, LEAVE_SCREEN)
+        finally:
+            termios.tcsetattr(self.fd_in, termios.TCSADRAIN, self.saved)
+            for sig, handler in self.handlers.items():
+                signal.signal(sig, handler)
+        return False
+
+
+def detect_sixel(fd_in, fd_out, timeout=0.2):
+    """Ask the terminal for its Primary Device Attributes; attribute 4 means Sixel."""
+    os.write(fd_out, b'\x1b[c')
+    reply, deadline = b'', time.monotonic() + timeout
+    while not reply.endswith(b'c'):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0 or not select.select([fd_in], [], [], remaining)[0]:
+            break
+        chunk = os.read(fd_in, 64)
+        if not chunk:
+            break
+        reply += chunk
+    found = re.search(rb'\x1b\[\?([\d;]*)c', reply)
+    return bool(found) and b'4' in found.group(1).split(b';')
+
+
+def cell_size(fd):
+    try:
+        rows, cols, width, height = struct.unpack('HHHH', fcntl.ioctl(fd, termios.TIOCGWINSZ, bytes(8)))
+        if rows and cols and width and height:
+            return max(1, width // cols), max(1, height // rows)
+    except OSError:
+        pass
+    return 10, 20
+
+
+# ---------- apply flow and event loop ----------
+
+def perform(model, command, backend, state, redraw=lambda: None):
+    """Carry out a dispatch command. Returns True when the picker should close."""
+    theme = model.selected()
+    if command == 'save':
+        try:
+            state.save()
+        except OSError as error:
+            model.message, model.error = f'Could not save favorites: {error}', True
+        return False
+    if theme is None:
+        return False
+    try:
+        if command == 'apply':
+            current = backend.status(theme.id)
+            if current == 'current':
+                model.message, model.error = 'Already applied', False
+                return False
+            if current == 'outdated':
+                model.prompt = 'outdated'
+                return False
+        model.prompt, model.message, model.error = None, 'Applying …', False
+        redraw()
+        if command == 'update':
+            backend.install(theme.id, replace=True)
+        elif command == 'apply' and current == 'missing':
+            backend.install(theme.id)
+        backend.apply(theme.id)
+    except backend.NeedsDecision:
+        model.prompt, model.message = 'outdated', None
+        return False
+    except Exception as error:  # surfaced in the info line; the picker stays open
+        model.prompt, model.message, model.error = None, str(error) or type(error).__name__, True
+        return False
+    state.push_recent(theme.id)
+    state.save()
+    model.message = None
+    return True
+
+
+STAGE_DELAY = 0.1
+
+
+def run(model, previews, backend, state, fd_in=0, fd_out=1):
+    """Run the picker until the user quits or a theme is applied."""
+    wake_r, wake_w = os.pipe()
+    os.set_blocking(wake_r, False)
+    resized = {'flag': True}
+    previews.on_ready = lambda: os.write(wake_w, b'.')
+    rng = random.Random()
+    previous = signal.getsignal(signal.SIGWINCH)
+
+    def on_resize(signum, frame):
+        resized['flag'] = True
+        os.write(wake_w, b'!')
+
+    signal.signal(signal.SIGWINCH, on_resize)
+    previews.start()
+    try:
+        with Screen(fd_in, fd_out):
+            sixel = detect_sixel(fd_in, fd_out)
+            selector = selectors.DefaultSelector()
+            selector.register(fd_in, selectors.EVENT_READ, 'input')
+            selector.register(wake_r, selectors.EVENT_READ, 'wake')
+            layout, stage_due, stage_drawn, thumbs_drawn = None, 0.0, False, set()
+
+            def repaint():
+                nonlocal stage_due, stage_drawn
+                os.write(fd_out, paint_frame(model, layout, NoImages, sixel))
+                if sixel:
+                    previews.request(wanted_images(model, layout))
+                stage_due, stage_drawn = time.monotonic() + STAGE_DELAY, False
+                thumbs_drawn.clear()
+
+            while True:
+                if resized['flag']:
+                    resized['flag'] = False
+                    cols, rows = os.get_terminal_size(fd_out)
+                    layout = compute_layout(cols, rows, *cell_size(fd_out))
+                    repaint()
+                # Before the idle delay: wake when it ends. After it: wait for input or a rendered image.
+                now = time.monotonic()
+                timeout = stage_due - now if sixel and now < stage_due else None
+                ready = selector.select(timeout)
+                for key, _ in ready:
+                    if key.data == 'wake':
+                        try:
+                            os.read(wake_r, 4096)
+                        except BlockingIOError:
+                            pass
+                        continue
+                    for event in parse_input(os.read(fd_in, 4096)):
+                        command = dispatch(model, event, layout, rng)
+                        if command == 'quit':
+                            return
+                        if command and perform(model, command, backend, state,
+                                               redraw=lambda: os.write(fd_out, paint_frame(model, layout, NoImages, sixel))):
+                            return
+                    repaint()
+                if resized['flag']:
+                    continue
+                if sixel and layout.mode != 'tiny' and time.monotonic() >= stage_due:
+                    os.write(fd_out, paint_thumbs(model, layout, previews, thumbs_drawn))
+                    if not stage_drawn:
+                        stage = paint_stage(model, layout, previews)
+                        if stage is not None:
+                            os.write(fd_out, stage)
+                            stage_drawn = True
+    finally:
+        previews.stop()
+        signal.signal(signal.SIGWINCH, previous)
+        os.close(wake_r)
+        os.close(wake_w)
