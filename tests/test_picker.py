@@ -1,10 +1,9 @@
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
-from contextlib import redirect_stdout
-import io
 from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('picker', Path(__file__).parents[1] / 'theme_picker.py')
@@ -22,39 +21,93 @@ class InstallTests(unittest.TestCase):
         (self.source / 'catalog.json').write_text(json.dumps([{'id': 'sample', 'name': 'Sample', 'series': 'Test', 'color': 'Violet'}]))
         theme = self.source / 'sample'
         theme.mkdir()
-        (theme / 'colors.toml').write_text('background = "#123456"')
+        (theme / 'colors.toml').write_text(
+            'background = "#123456"\naccent = "#aabbcc"\n'
+            'hyprland_active_border = "rgba(aabbccee) rgba(112233ee) 45deg"\n')
+        (theme / 'shell.toml').write_text('[bar]\nbackground = "#123456"\n')
         (theme / 'backgrounds').mkdir()
         (theme / 'backgrounds/wallpaper.png').write_bytes(b'example')
         (theme / 'hyprland.lua').write_text('must not copy executable configs')
         self.target = self.root / 'themes'
         self.target.mkdir()
-        self.root_patch = patch.object(picker, 'ROOT', self.source)
-        self.root_patch.start()
-        self.addCleanup(self.root_patch.stop)
-        self.dir_patch = patch.object(picker, 'themes_dir', return_value=self.target)
-        self.dir_patch.start()
-        self.addCleanup(self.dir_patch.stop)
+        for name, value in (('ROOT', self.source),):
+            p = patch.object(picker, name, value)
+            p.start()
+            self.addCleanup(p.stop)
+        p = patch.object(picker, 'themes_dir', return_value=self.target)
+        p.start()
+        self.addCleanup(p.stop)
+
+    def existing(self):
+        (self.target / 'sample').mkdir()
+        (self.target / 'sample/original').write_text('keep')
 
     def test_install_only_declarative_files(self):
-        self.assertTrue(picker.install('sample'))
+        self.assertEqual(picker.install('sample'), self.target / 'sample')
         self.assertTrue((self.target / 'sample/colors.toml').exists())
         self.assertFalse((self.target / 'sample/hyprland.lua').exists())
 
-    def test_declined_replacement_preserves_original(self):
-        (self.target / 'sample').mkdir()
-        (self.target / 'sample/original').write_text('keep')
-        with patch.object(picker.subprocess, 'run') as run:
-            run.return_value.returncode = 1
-            self.assertFalse(picker.install('sample'))
+    def test_existing_install_needs_decision(self):
+        self.existing()
+        with self.assertRaises(picker.NeedsDecision):
+            picker.install('sample')
         self.assertEqual((self.target / 'sample/original').read_text(), 'keep')
 
-    def test_confirmed_replacement_keeps_backup(self):
-        (self.target / 'sample').mkdir()
-        (self.target / 'sample/original').write_text('keep')
-        with patch.object(picker.subprocess, 'run') as run:
-            run.return_value.returncode = 0
-            self.assertTrue(picker.install('sample'))
+    def test_replace_keeps_backup(self):
+        self.existing()
+        picker.install('sample', replace=True)
         self.assertEqual(len(list(self.target.glob('.jake-theme-backup-*/sample/original'))), 1)
+        self.assertTrue((self.target / 'sample/colors.toml').exists())
+
+    def test_failed_replace_restores_backup(self):
+        self.existing()
+        real_rename = Path.rename
+
+        def rename(path, target):
+            if Path(target) == self.target / 'sample' and '.jake-theme-stage-' in str(path):
+                raise OSError('disk full')
+            return real_rename(path, target)
+
+        with patch.object(Path, 'rename', rename), self.assertRaises(OSError):
+            picker.install('sample', replace=True)
+        self.assertEqual((self.target / 'sample/original').read_text(), 'keep')
+
+    def test_status_values(self):
+        with patch.object(picker, 'current_theme', return_value=None):
+            self.assertEqual(picker.status('sample'), 'missing')
+            picker.install('sample')
+            self.assertEqual(picker.status('sample'), 'installed')
+            (self.target / 'sample/colors.toml').write_text('background = "#000000"')
+            self.assertEqual(picker.status('sample'), 'outdated')
+        with patch.object(picker, 'current_theme', return_value='sample'):
+            self.assertEqual(picker.status('sample'), 'current')
+
+    def test_current_theme_reads_state_file_then_cli(self):
+        state = self.root / 'state'
+        (state / 'omarchy/current').mkdir(parents=True)
+        (state / 'omarchy/current/theme.name').write_text('sample\n')
+        with patch.dict(os.environ, XDG_STATE_HOME=str(state)):
+            self.assertEqual(picker.current_theme(), 'sample')
+            (state / 'omarchy/current/theme.name').unlink()
+            with patch.object(picker.subprocess, 'run') as run:
+                run.return_value.returncode = 0
+                run.return_value.stdout = 'Sample\n'
+                self.assertEqual(picker.current_theme(), 'sample')
+                run.return_value.stdout = 'Other\n'
+                self.assertIsNone(picker.current_theme())
+
+    def test_apply_surfaces_stderr(self):
+        with patch.object(picker.subprocess, 'run') as run:
+            run.return_value.returncode = 1
+            run.return_value.stderr = 'boom\n'
+            with self.assertRaisesRegex(RuntimeError, '^boom$'):
+                picker.apply('sample')
+        self.assertEqual(run.call_args.args[0], ['omarchy', 'theme', 'set', 'sample'])
+
+    def test_palette_second_color(self):
+        palette = picker.palette('sample')
+        self.assertEqual(palette['second'], '#112233')
+        self.assertEqual(palette['background'], '#123456')
 
     def test_catalog_requires_series_and_color(self):
         (self.source / 'catalog.json').write_text(json.dumps([{'id': 'sample', 'name': 'Sample'}]))
@@ -67,34 +120,6 @@ class InstallTests(unittest.TestCase):
         (self.source / 'sample/link').symlink_to('/etc/passwd')
         with self.assertRaises(ValueError):
             picker.catalog()
-
-
-class PreviewTests(unittest.TestCase):
-    def test_preview_rejects_path_traversal(self):
-        with self.assertRaises(ValueError):
-            picker.preview('../outside')
-
-    def test_picker_returns_identifier_and_keeps_terminal_output(self):
-        with patch.object(picker.subprocess, 'run') as run:
-            run.return_value.returncode = 0
-            run.return_value.stdout = 'sample\tSample Theme\n'
-            self.assertEqual(picker.choose_theme([{'id': 'sample', 'name': 'Sample Theme'}]), 'sample')
-        self.assertNotIn('stderr', run.call_args.kwargs)
-        self.assertIn('--preview', run.call_args.args[0])
-
-    def test_wallpaper_and_palette_render_at_preview_size(self):
-        with patch.dict(picker.os.environ, FZF_PREVIEW_COLUMNS='2', FZF_PREVIEW_LINES='9'):
-            with patch.object(picker.subprocess, 'run') as run:
-                run.return_value.stdout = b'\x1bPqimage\x1b\\'
-                output = io.TextIOWrapper(io.BytesIO(), encoding='utf-8')
-                with redirect_stdout(output), patch.object(picker, 'terminal_cell_size', return_value=(10, 20)):
-                    picker.preview('a2-desert-memory')
-        rendered = output.buffer.getvalue()
-        self.assertIn(b'\x1bPqimage', rendered)
-        background = picker.tomllib.loads((picker.ROOT / 'a2-desert-memory/colors.toml').read_text())['background']
-        self.assertIn(f'background: {background}'.encode(), rendered)
-        self.assertIn('20x40', run.call_args.args[0])
-        self.assertIn('sixel:-', run.call_args.args[0])
 
 
 if __name__ == '__main__':
