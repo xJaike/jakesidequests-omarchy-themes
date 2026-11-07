@@ -38,6 +38,32 @@ def stage_command(wallpaper, palette, w, h):
     return argv
 
 
+def sample_command(wallpaper, palette, segments, w, h, alpha, cell, font):
+    """The terminal sample as a translucent terminal would show it over this theme's wallpaper."""
+    cw, ch = cell
+    argv = _fill(wallpaper, w, h)
+    argv += ['(', '-size', f'{w}x{h}', f'xc:{palette["background"]}', '-alpha', 'set', '-channel', 'A',
+             '-evaluate', 'set', f'{round(alpha * 100)}%', '+channel', ')', '-composite']
+    if font:
+        argv += ['-font', font]
+    argv += ['+gravity', '-pointsize', str(max(6, round(ch * 0.76)))]
+    columns = max(1, w // cw - 3)
+    for row, line in enumerate(segments):
+        x, y = 2, row + 1
+        if (y + 1) * ch > h:
+            break
+        for text, color, back in line:
+            text = text[:max(0, columns - (x - 2))]
+            if not text:
+                break
+            if back:
+                argv += ['-fill', back, '-draw',
+                         f'rectangle {x * cw},{y * ch} {(x + len(text)) * cw - 1},{(y + 1) * ch - 1}']
+            argv += ['-fill', color, '-annotate', f'+{x * cw}+{y * ch + round(ch * 0.78)}', text]
+            x += len(text)
+    return argv + ['-colors', '256', 'sixel:-']
+
+
 def thumb_command(wallpaper, w, h):
     return _fill(wallpaper, w, h) + ['-colors', '256', 'sixel:-']
 
@@ -53,6 +79,11 @@ class Previews:
         self.lock = threading.Condition()
         self.thread = None
         self.stopping = False
+        self.sample = {'alpha': 1.0, 'cell': (10, 20), 'font': None, 'segments': lambda palette: []}
+
+    def sample_settings(self, **settings):
+        """Opacity, cell size, font file and content used for 'sample' images; part of their cache key."""
+        self.sample.update(settings)
 
     def _wallpaper(self, slug):
         return next(iter(sorted((self.root / slug / 'backgrounds').glob('*'))), None)
@@ -61,8 +92,12 @@ class Previews:
         wallpaper = self._wallpaper(slug)
         if wallpaper is None:
             return None, None
+        extra = ''
+        if kind == 'sample':
+            extra = repr((self.sample['alpha'], self.sample['cell'], self.sample['font'],
+                          self.sample['segments'](self.palette(slug))))
         digest = hashlib.sha1((self.root / slug / 'colors.toml').read_bytes()
-                              + str(wallpaper.stat().st_mtime_ns).encode()).hexdigest()[:10]
+                              + str(wallpaper.stat().st_mtime_ns).encode() + extra.encode()).hexdigest()[:10]
         return wallpaper, self.cache_dir / f'{kind}-{slug}-{w}x{h}-{digest}.six'
 
     def _remember(self, path, data):
@@ -99,8 +134,14 @@ class Previews:
             wallpaper, path = self._path(kind, slug, w, h)
             if path is None:
                 raise FileNotFoundError(f'no wallpaper for {slug}')
-            argv = (stage_command(wallpaper, self.palette(slug), w, h) if kind == 'stage'
-                    else thumb_command(wallpaper, w, h))
+            if kind == 'stage':
+                argv = stage_command(wallpaper, self.palette(slug), w, h)
+            elif kind == 'sample':
+                palette = self.palette(slug)
+                argv = sample_command(wallpaper, palette, self.sample['segments'](palette), w, h,
+                                      self.sample['alpha'], self.sample['cell'], self.sample['font'])
+            else:
+                argv = thumb_command(wallpaper, w, h)
             data = self.run(['nice', '-n', '10'] + argv, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, check=True).stdout
             self.cache_dir.mkdir(parents=True, exist_ok=True)

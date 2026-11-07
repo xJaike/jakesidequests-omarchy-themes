@@ -53,6 +53,7 @@ class Model:
     message: str | None = None
     error: bool = False
     installed: set = field(default_factory=set)
+    alpha: float = 1.0
 
     def filtered(self):
         if self.view == 'recent':
@@ -158,6 +159,7 @@ class Layout:
     film: list
     stage_px: tuple
     thumb_px: tuple
+    sample_px: tuple = (0, 0)
 
 
 def compute_layout(cols, rows, cell_w, cell_h):
@@ -178,7 +180,8 @@ def compute_layout(cols, rows, cell_w, cell_h):
     film_y = info.y + 2
     film = [Rect(k * (card_w + 1), film_y, card_w, film_h) for k in range(count)]
     return Layout('wide' if wide else 'narrow', header, chips, stage, sample, info, film,
-                  (stage.w * cell_w, stage.h * cell_h), (card_w * cell_w, thumb_rows * cell_h))
+                  (stage.w * cell_w, stage.h * cell_h), (card_w * cell_w, thumb_rows * cell_h),
+                  (sample.w * cell_w, sample.h * cell_h) if sample else (0, 0))
 
 
 # ---------- input ----------
@@ -436,20 +439,46 @@ def _center(rect, text, color):
     return goto(rect.x + max(0, (rect.w - len(text)) // 2), rect.y + rect.h // 2) + fg(color) + text
 
 
-def _sample_lines(p):
-    c = lambda key, text: fg(p[key]) + text
-    return [
-        f"{c('green', '❯')} {c('blue', '~/projects')} {c('magenta', 'git:(main)')} {c('foreground', 'ls')}",
-        f"{c('blue', 'src')}  {c('blue', 'tests')}  {c('green', 'build.sh')}  {c('foreground', 'README.md')}",
-        f"{c('green', '❯')} {c('foreground', 'git status -s')}",
-        f" {c('yellow', 'M')} {c('foreground', 'theme_picker.py')}",
-        f" {c('red', 'D')} {c('foreground', 'old_menu.py')}",
-        f"{c('cyan', '??')} {c('foreground', 'filmstrip.py')}",
-        f"{c('green', '❯')} {c('foreground', 'make test')}",
-        f"{c('green', '✓ 14 passed')} {c('yellow', '⚠ 1 skipped')} {c('red', '✗ 0')}",
-        f"{c('muted', '# comment')}  {bg(p['selection'])}{c('foreground', ' selection ')}{bg(p['background'])}",
-        f"{c('green', '❯')} {bg(p['accent'])} {bg(p['background'])}",
+SHOWROOM_ROWS = (('red', 'yellow', 'green', 'cyan'), ('blue', 'magenta', 'orange', 'brown'))
+BRIGHT_ROWS = (('red', 'yellow', 'green', 'cyan'), ('blue', 'magenta'))
+SWATCHES = ('red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'magenta', 'brown', 'bright_red',
+            'bright_yellow', 'bright_green', 'bright_cyan', 'bright_blue', 'bright_magenta')
+
+
+def sample_segments(p):
+    """Terminal sample + palette showroom as lines of (text, fg hex, bg hex or None)."""
+    color = lambda key: p.get(key) or p['foreground']
+    seg = lambda text, key, back=None: (text, color(key), color(back) if back else None)
+    lines = [
+        [seg('❯ ', 'green'), seg('~/projects ', 'blue'), seg('git:(main) ', 'magenta'), seg('ls', 'foreground')],
+        [seg('src  ', 'blue'), seg('tests  ', 'blue'), seg('build.sh  ', 'green'), seg('README.md', 'foreground')],
+        [seg('❯ ', 'green'), seg('git status -s', 'foreground')],
+        [seg(' M ', 'yellow'), seg('theme_picker.py', 'foreground')],
+        [seg(' D ', 'red'), seg('old_menu.py', 'foreground')],
+        [seg('?? ', 'cyan'), seg('filmstrip.py', 'foreground')],
+        [seg('✓ 14 passed ', 'green'), seg('⚠ 1 skipped ', 'yellow'), seg('✗ 0', 'red')],
+        [],
+        [seg('palette · normal / bright', 'muted')],
     ]
+    lines += [[seg(f'{name:<9}', name) for name in row] for row in SHOWROOM_ROWS]
+    lines += [[seg(f'{name:<9}', 'bright_' + name) for name in row] for row in BRIGHT_ROWS]
+    lines += [[seg('██', key) for key in SWATCHES]]
+    lines += [[seg('fg ', 'foreground'), seg('light ', 'light_foreground'), seg('dark ', 'dark_foreground'),
+               seg('bright ', 'bright_foreground'), seg('muted', 'muted')],
+              [seg('accent ', 'accent'), seg('second ', 'second'), seg(' selection ', 'foreground', 'selection')],
+              [seg('❯ ', 'green'), ('█', color('accent'), None)]]
+    return lines
+
+
+def _segments_ansi(line, width, base):
+    out, used = [], 0
+    for text, color, back in line:
+        text = text[:max(0, width - used)]
+        if not text:
+            break
+        out += [bg(back) if back else base, fg(color), text]
+        used += len(text)
+    return ''.join(out + [base])
 
 
 def _status_text(model, theme):
@@ -503,8 +532,8 @@ def paint_frame(model, layout, images, sixel):
         out.append(base)
         if layout.sample:
             sample = layout.sample
-            for row, line in enumerate(_sample_lines(p)[:max(0, sample.h - 2)]):
-                out += [goto(sample.x + 2, sample.y + 1 + row), base, line]
+            for row, line in enumerate(sample_segments(p)[:max(0, sample.h - 2)]):
+                out += [goto(sample.x + 2, sample.y + 1 + row), base, _segments_ansi(line, sample.w - 3, base)]
     # info line
     info = layout.info
     left, hints = info_line(model, theme, cols)
@@ -606,6 +635,17 @@ def paint_stage(model, layout, images):
     return goto(layout.stage.x, layout.stage.y).encode() + data
 
 
+def paint_sample(model, layout, images):
+    """The translucent-terminal sample image over the text sample, or None (opaque terminal or not cached)."""
+    theme = model.selected()
+    if model.alpha >= 1 or layout.sample is None or theme is None:
+        return None
+    data = images.get('sample', theme.id, *layout.sample_px)
+    if data is None:
+        return None
+    return goto(layout.sample.x, layout.sample.y).encode() + data
+
+
 def wanted_images(model, layout):
     """Images the screen needs at the current layout's sizes: stages first, then visible thumbnails."""
     themes = model.filtered()
@@ -613,6 +653,8 @@ def wanted_images(model, layout):
         return []
     jobs = [('stage', themes[i].id, *layout.stage_px)
             for i in (model.index, model.index + 1, model.index - 1) if 0 <= i < len(themes)]
+    if model.alpha < 1 and layout.sample:
+        jobs.insert(1, ('sample', themes[model.index].id, *layout.sample_px))
     start = film_start(model, layout)
     jobs += [('thumb', theme.id, *layout.thumb_px) for theme in themes[start:start + len(layout.film)]]
     return jobs
@@ -763,21 +805,24 @@ def run(model, previews, backend, state, fd_in=0, fd_out=1):
             selector = selectors.DefaultSelector()
             selector.register(fd_in, selectors.EVENT_READ, 'input')
             selector.register(wake_r, selectors.EVENT_READ, 'wake')
-            layout, stage_due, stage_drawn, thumbs_drawn = None, 0.0, False, set()
+            layout, stage_due, stage_drawn, sample_drawn, thumbs_drawn = None, 0.0, False, False, set()
 
             def repaint():
-                nonlocal stage_due, stage_drawn
+                nonlocal stage_due, stage_drawn, sample_drawn
                 os.write(fd_out, paint_frame(model, layout, NoImages, sixel))
                 if sixel:
                     previews.request(wanted_images(model, layout))
-                stage_due, stage_drawn = time.monotonic() + STAGE_DELAY, False
+                stage_due, stage_drawn, sample_drawn = time.monotonic() + STAGE_DELAY, False, False
                 thumbs_drawn.clear()
 
             while True:
                 if resized['flag']:
                     resized['flag'] = False
                     cols, rows = os.get_terminal_size(fd_out)
-                    layout = compute_layout(cols, rows, *cell_size(fd_out))
+                    cell = cell_size(fd_out)
+                    layout = compute_layout(cols, rows, *cell)
+                    if hasattr(previews, 'sample_settings'):
+                        previews.sample_settings(cell=cell)
                     repaint()
                 # Before the idle delay: wake when it ends. After it: wait for input or a rendered image.
                 now = time.monotonic()
@@ -807,6 +852,11 @@ def run(model, previews, backend, state, fd_in=0, fd_out=1):
                         if stage is not None:
                             os.write(fd_out, stage)
                             stage_drawn = True
+                    if not sample_drawn:
+                        sample = paint_sample(model, layout, previews)
+                        if sample is not None:
+                            os.write(fd_out, sample)
+                            sample_drawn = True
     finally:
         previews.stop()
         signal.signal(signal.SIGWINCH, previous)

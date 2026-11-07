@@ -3,7 +3,9 @@ import unittest
 from test_tui_model import FIXTURE, tui
 
 KEYS = ('background', 'foreground', 'muted', 'accent', 'second', 'selection', 'lighter_background',
-        'red', 'green', 'yellow', 'blue', 'magenta', 'cyan')
+        'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'orange', 'brown',
+        'bright_red', 'bright_yellow', 'bright_green', 'bright_cyan', 'bright_blue', 'bright_magenta',
+        'light_foreground', 'dark_foreground', 'bright_foreground')
 
 
 def palette(seed):
@@ -52,6 +54,37 @@ class PaintTests(unittest.TestCase):
         for key in ('red', 'green', 'yellow', 'blue', 'magenta', 'cyan'):
             self.assertIn(code('fg', model.themes[0].palette[key]), out)
         self.assertIn('git:(main)'.encode(), out)
+
+    def test_showroom_names_each_color_in_its_own_color(self):
+        p = palette(2)
+        segments = [segment for line in tui.sample_segments(p) for segment in line]
+        for key in ('red', 'yellow', 'green', 'cyan', 'blue', 'magenta', 'orange', 'brown'):
+            self.assertIn((key, p[key], None), [(t.strip(), f, b) for t, f, b in segments])
+        for key in ('red', 'yellow', 'green', 'cyan', 'blue', 'magenta'):
+            self.assertIn(p['bright_' + key], [f for _, f, _ in segments])
+        for key in ('foreground', 'light_foreground', 'dark_foreground', 'bright_foreground', 'muted',
+                    'accent', 'second'):
+            self.assertIn(p[key], [f for _, f, _ in segments])
+        self.assertIn(p['selection'], [b for _, _, b in segments])
+        self.assertIn(' selection ', [t for t, _, _ in segments])
+
+    def test_showroom_painted_as_text_when_opaque(self):
+        model = make_model()
+        out = self.frame(model)
+        for key in ('bright_red', 'orange', 'brown', 'light_foreground'):
+            self.assertIn(code('fg', model.themes[0].palette[key]), out)
+        self.assertIn(b'palette', out)
+
+    def test_sample_image_requested_and_painted_only_when_translucent(self):
+        model = make_model()
+        self.assertNotIn('sample', [job[0] for job in tui.wanted_images(model, self.layout)])
+        self.assertIsNone(tui.paint_sample(model, self.layout, FakeImages({('sample', 'a')})))
+        model.alpha = 0.8
+        self.assertIn(('sample', 'a', *self.layout.sample_px), tui.wanted_images(model, self.layout))
+        self.assertIsNone(tui.paint_sample(model, self.layout, FakeImages()))
+        self.assertIn(b'\x1bPqsample-a', tui.paint_sample(model, self.layout, FakeImages({('sample', 'a')})))
+        narrow = tui.compute_layout(99, 40, 10, 20)
+        self.assertNotIn('sample', [job[0] for job in tui.wanted_images(model, narrow)])
 
     def test_cached_thumbs_drawn_placeholders_otherwise(self):
         model = make_model()

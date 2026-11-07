@@ -51,6 +51,30 @@ class PreviewTests(unittest.TestCase):
         self.assertEqual(argv[-1], 'sixel:-')
         self.assertIn('200x112', ' '.join(previews.thumb_command(Path('/w.png'), 200, 112)))
 
+    def test_sample_command_blends_wallpaper_and_draws_text(self):
+        segments = [[('❯ ', '#11aa11', None), ('ls', '#eeeeee', None)], [(' selection ', '#eeeeee', '#333366')]]
+        argv = previews.sample_command(Path('/w.png'), PALETTE, segments, 590, 400, 0.8, (10, 20), '/f.ttf')
+        joined = ' '.join(argv)
+        self.assertIn('590x400', joined)
+        self.assertIn('xc:#101010', joined)
+        self.assertIn('80%', joined)
+        self.assertIn('/f.ttf', joined)
+        for text in ('❯ ', 'ls', ' selection '):
+            self.assertIn(text, argv)
+        self.assertIn('#333366', joined)
+        # Text offsets must be baselines (no gravity), so text lines up with its row and highlight.
+        self.assertLess(argv.index('+gravity'), argv.index('-annotate'))
+        self.assertEqual(argv[-1], 'sixel:-')
+
+    def test_render_sample_uses_settings_and_keys_cache_on_them(self):
+        run = FakeRun()
+        p = self.make(run)
+        p.sample_settings(alpha=0.8, cell=(10, 20), font='/f.ttf', segments=lambda palette: [[('x', '#fff', None)]])
+        self.assertEqual(p.render('sample', 'sample', 590, 400), b'SIXEL')
+        self.assertIn('80%', ' '.join(run.calls[0]))
+        p.sample_settings(alpha=0.6, cell=(10, 20), font='/f.ttf', segments=lambda palette: [])
+        self.assertIsNone(p.get('sample', 'sample', 590, 400))
+
     def test_render_caches_on_disk_and_memory(self):
         run = FakeRun()
         first = self.make(run)
