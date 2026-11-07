@@ -123,3 +123,47 @@ class Model:
         for theme in self.themes:
             counts[theme.series] = counts.get(theme.series, 0) + 1
         return sorted(counts.items())
+
+
+# ---------- layout ----------
+
+@dataclass(frozen=True)
+class Rect:
+    x: int
+    y: int
+    w: int
+    h: int
+
+
+@dataclass(frozen=True)
+class Layout:
+    mode: str
+    header: Rect
+    chips: Rect
+    stage: Rect | None
+    sample: Rect | None
+    info: Rect | None
+    film: list
+    stage_px: tuple
+    thumb_px: tuple
+
+
+def compute_layout(cols, rows, cell_w, cell_h):
+    """Place header, chips, stage, terminal sample, info line and filmstrip cards (0-based cells)."""
+    header, chips = Rect(0, 0, cols, 1), Rect(0, 1, cols, 1)
+    if cols < 60 or rows < 20:
+        return Layout('tiny', header, chips, None, None, None, [], (0, 0), (0, 0))
+    thumb_rows = max(3, rows * 18 // 100)
+    film_h = thumb_rows + 2
+    stage_y = 3
+    stage_h = rows - stage_y - 2 - film_h  # info line + bottom rule
+    wide = cols >= 100
+    stage = Rect(0, stage_y, cols * 62 // 100 if wide else cols, stage_h)
+    sample = Rect(stage.w + 2, stage_y, cols - stage.w - 2, stage_h) if wide else None
+    info = Rect(0, stage_y + stage_h, cols, 1)
+    card_w = max(18, cols // 7)
+    count = max(3, (cols + 1) // (card_w + 1))
+    film_y = info.y + 2
+    film = [Rect(k * (card_w + 1), film_y, card_w, film_h) for k in range(count)]
+    return Layout('wide' if wide else 'narrow', header, chips, stage, sample, info, film,
+                  (stage.w * cell_w, stage.h * cell_h), (card_w * cell_w, thumb_rows * cell_h))
