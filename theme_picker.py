@@ -76,7 +76,7 @@ def install(slug):
 
 def choose(options, header):
     result = subprocess.run(['gum', 'filter', '--header', header, '--placeholder', 'Type to search…'],
-                            input='\n'.join(options), text=True, capture_output=True)
+                            input='\n'.join(options), text=True, stdout=subprocess.PIPE)
     return result.stdout.strip() if result.returncode == 0 else None
 
 
