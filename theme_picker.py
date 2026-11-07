@@ -127,6 +127,47 @@ def apply(slug):
         raise RuntimeError((result.stderr or '').strip() or f'omarchy theme set failed ({result.returncode})')
 
 
+def state_path():
+    return state_home() / 'jake-sidequests-themes/state.json'
+
+
+class State:
+    """Favorite and recently applied themes, kept between picker sessions."""
+    RECENT_LIMIT = 10
+
+    def __init__(self, path, favorites=(), recent=()):
+        self.path = Path(path)
+        self.favorites = set(favorites)
+        self.recent = list(recent)
+
+    @classmethod
+    def load(cls, path, known):
+        try:
+            data = json.loads(Path(path).read_text())
+            favorites = [slug for slug in data.get('favorites', []) if slug in known]
+            recent = [slug for slug in data.get('recent', []) if slug in known]
+        except (OSError, ValueError, AttributeError, TypeError):
+            favorites, recent = [], []
+        return cls(path, favorites, recent[:cls.RECENT_LIMIT])
+
+    def save(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        temp = self.path.with_name(self.path.name + '.tmp')
+        temp.write_text(json.dumps({'favorites': sorted(self.favorites), 'recent': self.recent}))
+        os.replace(temp, self.path)
+
+    def toggle_favorite(self, slug):
+        if slug in self.favorites:
+            self.favorites.discard(slug)
+            return False
+        self.favorites.add(slug)
+        return True
+
+    def push_recent(self, slug):
+        self.recent = [slug] + [item for item in self.recent if item != slug]
+        del self.recent[self.RECENT_LIMIT:]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--list', action='store_true', help='List themes without modifying anything')

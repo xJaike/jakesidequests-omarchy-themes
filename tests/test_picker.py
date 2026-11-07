@@ -122,5 +122,56 @@ class InstallTests(unittest.TestCase):
             picker.catalog()
 
 
+class StateTests(unittest.TestCase):
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.path = Path(temp.name) / 'jake-sidequests-themes/state.json'
+        self.known = {'a', 'b'} | {f't{i}' for i in range(12)}
+
+    def test_favorite_round_trip(self):
+        state = picker.State.load(self.path, self.known)
+        self.assertTrue(state.toggle_favorite('a'))
+        state.save()
+        state = picker.State.load(self.path, self.known)
+        self.assertEqual(state.favorites, {'a'})
+        self.assertFalse(state.toggle_favorite('a'))
+
+    def test_recent_capped_newest_first_deduplicated(self):
+        state = picker.State.load(self.path, self.known)
+        for i in range(12):
+            state.push_recent(f't{i}')
+        state.push_recent('t5')
+        self.assertEqual(state.recent[0], 't5')
+        self.assertEqual(len(state.recent), 10)
+        self.assertEqual(state.recent.count('t5'), 1)
+
+    def test_unknown_slugs_dropped_on_load(self):
+        self.path.parent.mkdir(parents=True)
+        self.path.write_text(json.dumps({'favorites': ['gone', 'a'], 'recent': ['gone', 'b']}))
+        state = picker.State.load(self.path, {'a', 'b'})
+        self.assertEqual(state.favorites, {'a'})
+        self.assertEqual(state.recent, ['b'])
+
+    def test_corrupt_file_gives_empty_state(self):
+        self.path.parent.mkdir(parents=True)
+        self.path.write_text('{nope')
+        state = picker.State.load(self.path, self.known)
+        self.assertEqual((state.favorites, state.recent), (set(), []))
+
+    def test_save_is_atomic(self):
+        self.path.parent.mkdir(parents=True)
+        self.path.write_text('{"favorites": ["a"], "recent": []}')
+        state = picker.State.load(self.path, self.known)
+        state.toggle_favorite('b')
+        with patch.object(picker.os, 'replace', side_effect=OSError('crash')), self.assertRaises(OSError):
+            state.save()
+        self.assertEqual(self.path.read_text(), '{"favorites": ["a"], "recent": []}')
+
+    def test_state_path_uses_xdg_state_home(self):
+        with patch.dict(os.environ, XDG_STATE_HOME='/x'):
+            self.assertEqual(picker.state_path(), Path('/x/jake-sidequests-themes/state.json'))
+
+
 if __name__ == '__main__':
     unittest.main()
