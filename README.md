@@ -1,16 +1,28 @@
 # Jake Sidequests Themes
 
-132 anime and gaming inspired Omarchy themes with generated wallpapers. A paintbrush button in the Omarchy bar opens a searchable terminal picker. Preview a wallpaper, install a theme, or install and apply it.
+132 anime and gaming inspired Omarchy themes with generated wallpapers. A paintbrush button in the Omarchy bar opens a full-screen terminal picker: a large mock-desktop preview of the highlighted theme above a filmstrip of wallpapers, with filters by series, color, favorites and recent themes.
 
 ## Install
 
-Requires Omarchy Quattro with Quickshell, Python 3.11+, Gum, fzf, ImageMagick, a Sixel-capable terminal (such as Foot), and xdg-utils. These are local system dependencies; the plugin does not install packages.
+Requires Omarchy Quattro with Quickshell, Python 3.11+, ImageMagick, and a Sixel-capable terminal (such as Foot). These are local system dependencies; the plugin does not install packages.
 
 ```sh
 omarchy plugin add https://github.com/xJaike/jakesidequests-omarchy-themes --enable
 ```
 
-Click the paintbrush and type to search. Highlight a theme to see its wallpaper and color palette as a pixel-resolution Sixel image in the preview pane; browsing does not apply the theme. The preview moves below the list in narrow terminals. Press Enter to choose an action. Escape goes back or closes the picker. The Preview wallpaper action opens the full image in your default image viewer. The picker currently uses English; the bar tooltip follows Omarchy's translation fallback.
+Click the paintbrush. The picker opens on your current theme. The stage shows the highlighted theme as a miniature desktop (wallpaper, bar, window borders), and beside it a terminal sample drawn in the theme's real ANSI colors; the whole picker re-tints to the highlighted theme. Browsing never changes your system; only Enter does.
+
+| Key | Action |
+|---|---|
+| `←` `→` / `h` `l` / mouse wheel | Previous / next theme |
+| `Enter` / click the selected card | Apply (installs first if needed) |
+| `f` | Favorite / unfavorite |
+| `r` | Surprise: jump to a random theme in the current filter |
+| `/` or start typing | Search names, series and colors |
+| `Tab` | Move to the filter chips (All, ★ Favorites, Recent, Series, colors) |
+| `Esc` | Clear search, leave the chips, or quit |
+
+If an installed copy differs from the bundled theme, Enter asks: `u` update & apply (a backup is kept) or `a` apply your copy. Previews are rendered on demand and cached in `$XDG_CACHE_HOME/jake-sidequests-themes`; favorites and recent themes are stored in `$XDG_STATE_HOME/jake-sidequests-themes/state.json`. Without Sixel support the picker still works, showing palettes instead of images. The picker currently uses English; the bar tooltip follows Omarchy's translation fallback.
 
 Run the picker directly from a checkout:
 
@@ -21,9 +33,9 @@ python theme_picker.py --list
 
 ## Files and permissions
 
-All 132 themes are bundled. Installation downloads the repository (approximately 308 MB); the picker makes no network requests and runs no background polling. Previewing starts `xdg-open`. Applying explicitly runs `omarchy theme set`.
+All 132 themes are bundled. Installation downloads the repository (approximately 308 MB); the picker makes no network requests and runs no background polling. Previews run ImageMagick locally. Applying explicitly runs `omarchy theme set`.
 
-Installation copies declarative colors, shell styling, icon selection and raster wallpapers into `$XDG_CONFIG_HOME/omarchy/themes/<slug>` (default `~/.config/omarchy/themes`). Executable theme configs are never copied. Replacing an existing directory requires confirmation, defaults to No, and preserves a backup beside it in `.jake-theme-backup-*/<slug>`. No sudo is needed.
+Installation copies declarative colors, shell styling, icon selection and raster wallpapers into `$XDG_CONFIG_HOME/omarchy/themes/<slug>` (default `~/.config/omarchy/themes`). Executable theme configs are never copied. Replacing an existing directory only happens when you choose `u` update & apply, and preserves a backup beside it in `.jake-theme-backup-*/<slug>`. No sudo is needed.
 
 ## Remove and update
 
