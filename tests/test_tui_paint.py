@@ -104,6 +104,29 @@ class PaintTests(unittest.TestCase):
         self.assertIn(code('fg', model.themes[0].palette['red']) + b'boom', out)
         self.assertIn('★'.encode(), out)
 
+    def test_info_line_fits_and_keeps_left_text(self):
+        model = make_model(prompt='outdated')
+        for cols in (60, 95, 100, 120, 160):
+            left, hints = tui.info_line(model, model.selected(), cols)
+            self.assertEqual(left, tui.OUTDATED_PROMPT if cols >= 62 else left)
+            used = len(left) + (len(hints) + 2 if hints else 0)
+            self.assertLessEqual(used, cols - 2, cols)
+        model = make_model(message='x' * 300, error=True)
+        left, hints = tui.info_line(model, model.selected(), 100)
+        self.assertLessEqual(len(left), 98)
+
+    def test_chips_fit_width(self):
+        model = make_model()
+        model.themes = [tui.Theme(f't{c}', 'n', 'The Apothecary Diaries', c, palette(1))
+                        for c in tui.COLOR_FAMILIES[:7]]
+        model.set_series('The Apothecary Diaries')
+        for cols in (60, 95, 100, 120, 160):
+            layout = tui.compute_layout(cols, 40, 10, 20)
+            spans = tui.chip_spans(model, layout)
+            self.assertLessEqual(spans[-1][1], cols - 1, cols)
+            if cols >= 95:
+                self.assertEqual(sum(1 for *_, chip in spans if chip.kind == 'color'), 7, cols)
+
     def test_series_list_and_centered_film(self):
         layout = tui.compute_layout(60, 20, 10, 20)
         model = make_model(focus='series')

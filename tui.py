@@ -249,17 +249,31 @@ def film_start(model, layout):
 
 
 def chip_label(chip):
-    return f' ● {chip.label} ' if chip.kind == 'color' else f' {chip.label} '
+    if chip.kind == 'color':
+        return f' ● {chip.label} ' if chip.label else ' ● '
+    return f' {chip.label} '
 
 
 def chip_spans(model, layout):
-    """Column range [start, end) of every chip on the chips row."""
-    spans, x = [], 1
-    for chip in model.chips():
-        width = len(chip_label(chip))
-        spans.append((x, x + width, chip))
-        x += width + 1
-    return spans
+    """Column range [start, end) of every chip that fits on the chips row, with labels shortened to fit.
+
+    Color chips shrink from full names to three letters to dots only; chips that still do not fit are left out.
+    """
+    limit = layout.header.w - 1
+    chips = model.chips()
+    for chip in chips:
+        if chip.kind == 'series':
+            chip.label = f'Series: {_fit(model.series or "any", 16)} ▾'
+    for shorten in (lambda name: name, lambda name: name[:3], lambda name: ''):
+        tier = [Chip(shorten(c.label), c.kind, c.value, c.active) if c.kind == 'color' else c for c in chips]
+        spans, x = [], 1
+        for chip in tier:
+            width = len(chip_label(chip))
+            spans.append((x, x + width, chip))
+            x += width + 1
+        if spans[-1][1] <= limit:
+            return spans
+    return [span for span in spans if span[1] <= limit]
 
 
 def _activate_chip(model, chip):
@@ -279,6 +293,8 @@ def dispatch(model, event, layout, rng):
     char = event.value if event.kind == 'char' else None
     if name == 'ctrl-c':
         return 'quit'
+    if model.prompt != 'outdated':
+        model.message, model.error = None, False
     if model.prompt == 'outdated':
         if char == 'u':
             return 'update'
@@ -308,9 +324,7 @@ def dispatch(model, event, layout, rng):
         elif name == 'backspace':
             model.backspace()
         elif name == 'esc':
-            if model.search:
-                model.search = ''
-                model._reselect(None)
+            model._refilter(lambda: setattr(model, 'search', ''))
             model.focus = 'film'
         elif name in ('left', 'right'):
             model.move(1 if name == 'right' else -1)
@@ -320,7 +334,7 @@ def dispatch(model, event, layout, rng):
             return 'apply' if model.selected() else None
         return None
     if model.focus == 'chips':
-        chips = model.chips()
+        chips = [chip for _, _, chip in chip_spans(model, layout)]
         if name in ('left', 'right'):
             model.chip_index = max(0, min(len(chips) - 1, model.chip_index + (1 if name == 'right' else -1)))
         elif name in ('enter', 'space'):
@@ -342,13 +356,18 @@ def dispatch(model, event, layout, rng):
     elif name == 'tab':
         model.focus = 'chips'
     elif name == 'esc':
-        return 'quit'
+        if not model.search:
+            return 'quit'
+        model._refilter(lambda: setattr(model, 'search', ''))
+    elif name == 'backspace':
+        if model.search:
+            model.backspace()
     elif char == 'q':
         return 'quit'
     elif char == 'f':
         theme = model.selected()
         if theme:
-            model.favorites.symmetric_difference_update({theme.id})
+            model._refilter(lambda: model.favorites.symmetric_difference_update({theme.id}))
             return 'save'
     elif char == 'r':
         model.surprise(rng)
@@ -468,7 +487,7 @@ def paint_frame(model, layout, images, sixel):
         label = chip_label(chip)
         if chip.kind == 'color':
             dot = fg(FAMILY_SWATCH.get(chip.value, p['accent'])) if not chip.active else ''
-            label = f' {dot}●{style} {chip.label} '
+            label = f' {dot}●{style} {chip.label} ' if chip.label else f' {dot}●{style} '
         out += [goto(start, layout.chips.y), style, label, base]
     out += [goto(0, 2), fg(p['accent']), '─' * cols]
     # stage
@@ -488,17 +507,18 @@ def paint_frame(model, layout, images, sixel):
                 out += [goto(sample.x + 2, sample.y + 1 + row), base, line]
     # info line
     info = layout.info
+    left, hints = info_line(model, theme, cols)
     out.append(goto(1, info.y) + base)
     if model.prompt == 'outdated':
-        out += [fg(p['foreground']), OUTDATED_PROMPT]
+        out += [fg(p['foreground']), left]
     elif model.message:
-        out += [fg(p['red'] if model.error else p['foreground']), model.message]
+        out += [fg(p['red'] if model.error else p['foreground']), left]
     elif theme:
-        out += [fg(p['accent']), '\x1b[1m', theme.name, '\x1b[22m', fg(p['muted']),
-                f' · {theme.series} · {_status_text(model, theme)}']
-    hints = '  '.join(f'{k} {v}' for k, v in KEY_HINTS)
-    out += [goto(max(0, cols - len(hints) - 1), info.y)]
-    out += ['  '.join(f'{fg(p["foreground"])}{k} {fg(p["muted"])}{v}' for k, v in KEY_HINTS)]
+        name = left[:len(theme.name)]
+        out += [fg(p['accent']), '\x1b[1m', name, '\x1b[22m', fg(p['muted']), left[len(name):]]
+    if hints:
+        out += [goto(cols - len(hints) - 1, info.y)]
+        out += ['  '.join(f'{fg(p["foreground"])}{k} {fg(p["muted"])}{v}' for k, v in hints_pairs(hints))]
     out += [goto(0, info.y + 1), fg(p['lighter_background']), '─' * cols]
     # filmstrip
     themes = model.filtered()
@@ -530,6 +550,35 @@ def paint_frame(model, layout, images, sixel):
 def _encode(parts):
     """Join text (UTF-8) and Sixel payloads (already bytes)."""
     return b''.join(part if isinstance(part, bytes) else part.encode('utf-8') for part in parts)
+
+
+COMPACT_HINTS = (('←→', ''), ('Enter', ''), ('f', ''), ('r', ''), ('/', ''), ('tab', ''), ('esc', ''))
+
+
+def _hint_text(pairs):
+    return '  '.join(f'{k} {v}'.rstrip() for k, v in pairs)
+
+
+def hints_pairs(text):
+    return KEY_HINTS if text == _hint_text(KEY_HINTS) else COMPACT_HINTS
+
+
+def info_line(model, theme, cols):
+    """Left text (prompt, message or name · series · status) fitted to the width, and the key hints that still fit."""
+    if model.prompt == 'outdated':
+        left = OUTDATED_PROMPT
+    elif model.message:
+        left = model.message
+    elif theme:
+        left = f'{theme.name} · {theme.series} · {_status_text(model, theme)}'
+    else:
+        left = ''
+    left = _fit(left, cols - 2)
+    for pairs in (KEY_HINTS, COMPACT_HINTS):
+        hints = _hint_text(pairs)
+        if len(left) + len(hints) + 2 <= cols - 2:
+            return left, hints
+    return left, None
 
 
 def _series_box(model, stage, p):
@@ -681,7 +730,8 @@ def perform(model, command, backend, state, redraw=lambda: None):
         model.prompt, model.message = 'outdated', None
         return False
     except Exception as error:  # surfaced in the info line; the picker stays open
-        model.prompt, model.message, model.error = None, str(error) or type(error).__name__, True
+        lines = str(error).strip().splitlines()
+        model.prompt, model.message, model.error = None, lines[0] if lines else type(error).__name__, True
         return False
     state.push_recent(theme.id)
     state.save()

@@ -103,6 +103,7 @@ class InstallTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, '^boom$'):
                 picker.apply('sample')
         self.assertEqual(run.call_args.args[0], ['omarchy', 'theme', 'set', 'sample'])
+        self.assertEqual(run.call_args.kwargs.get('stdin'), picker.subprocess.DEVNULL)
 
     def test_palette_second_color(self):
         palette = picker.palette('sample')

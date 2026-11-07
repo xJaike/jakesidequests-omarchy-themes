@@ -123,7 +123,9 @@ def install(slug, replace=False):
 
 
 def apply(slug):
-    result = subprocess.run(['omarchy', 'theme', 'set', slug], capture_output=True, text=True)
+    # stdin must not be the picker's terminal: omarchy treats a TTY as an interactive call.
+    result = subprocess.run(['omarchy', 'theme', 'set', slug], stdin=subprocess.DEVNULL,
+                            capture_output=True, text=True)
     if result.returncode:
         raise RuntimeError((result.stderr or '').strip() or f'omarchy theme set failed ({result.returncode})')
 

@@ -90,6 +90,42 @@ class DispatchTests(unittest.TestCase):
         self.send(key('up'), key('enter'))
         self.assertIsNone(self.model.series)
 
+    def test_message_clears_on_next_key(self):
+        self.model.message, self.model.error = 'Already applied', True
+        self.send(key('right'))
+        self.assertEqual((self.model.message, self.model.error), (None, False))
+
+    def test_esc_clearing_search_keeps_found_theme(self):
+        self.send(E('char', '/'), *[E('char', c) for c in 'emerald'])
+        self.assertEqual(self.model.selected().id, 'e')
+        self.send(key('esc'))
+        self.assertEqual((self.model.search, self.model.selected().id), ('', 'e'))
+
+    def test_unfavorite_in_favorites_view_keeps_valid_selection(self):
+        self.model.favorites.update({'a', 'b', 'c'})
+        self.model.set_view('favorites')
+        self.model.end()
+        self.send(E('char', 'f'))
+        self.assertTrue(0 <= self.model.index < len(self.model.filtered()))
+        self.assertIsNotNone(self.model.selected())
+
+    def test_film_focus_esc_and_backspace_edit_leftover_search(self):
+        self.send(E('char', '/'), E('char', 'n'), E('char', 'a'), key('tab'), key('tab'))
+        self.assertEqual((self.model.focus, self.model.search), ('film', 'na'))
+        self.send(key('backspace'))
+        self.assertEqual(self.model.search, 'n')
+        self.assertEqual(self.send(key('esc')), [None])
+        self.assertEqual(self.model.search, '')
+
+    def test_chip_focus_stays_on_visible_chips(self):
+        self.model.themes = [tui.Theme(f't{c}', 'n', 'Naruto', c, {}) for c in tui.COLOR_FAMILIES]
+        layout = tui.compute_layout(60, 30, 10, 20)
+        for event in [key('tab')] + [key('right')] * 20:
+            tui.dispatch(self.model, event, layout, self.rng)
+        visible = tui.chip_spans(self.model, layout)
+        self.assertLess(len(visible), len(self.model.chips()))
+        self.assertEqual(self.model.chip_index, len(visible) - 1)
+
     def test_outdated_prompt_keys(self):
         self.model.prompt = 'outdated'
         self.assertEqual(self.send(E('char', 'f')), [None])

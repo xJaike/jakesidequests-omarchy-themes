@@ -110,6 +110,10 @@ class PerformTests(unittest.TestCase):
         model, state, done, _ = self.run_flow('apply', FakeBackend('installed', RuntimeError('boom')))
         self.assertEqual((model.message, model.error, done, state.recent), ('boom', True, False, []))
 
+    def test_multiline_error_shows_first_line(self):
+        model, _, _, _ = self.run_flow('apply', FakeBackend('installed', RuntimeError('first line\nsecond line')))
+        self.assertEqual(model.message, 'first line')
+
     def test_save_command_persists_favorites(self):
         _, state, done, _ = self.run_flow('save', FakeBackend())
         self.assertEqual((state.saved, done), (1, False))
