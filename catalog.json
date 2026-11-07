@@ -1,530 +1,794 @@
 [
   {
     "id": "a2-desert-memory",
-    "name": "A2 Desert Memory"
+    "name": "A2 Desert Memory",
+    "series": "NieR",
+    "color": "Violet"
   },
   {
     "id": "ace-ember-legacy",
-    "name": "Ace Ember Legacy"
+    "name": "Ace Ember Legacy",
+    "series": "One Piece",
+    "color": "Ember"
   },
   {
     "id": "aerith-flower-sanctuary",
-    "name": "Aerith Flower Sanctuary"
+    "name": "Aerith Flower Sanctuary",
+    "series": "Final Fantasy",
+    "color": "Rose"
   },
   {
     "id": "ahri-spirit-blossom",
-    "name": "Ahri Spirit Blossom"
+    "name": "Ahri Spirit Blossom",
+    "series": "League of Legends",
+    "color": "Rose"
   },
   {
     "id": "aizen-celestial-mirror",
-    "name": "Aizen Celestial Mirror"
+    "name": "Aizen Celestial Mirror",
+    "series": "Bleach",
+    "color": "Violet"
   },
   {
     "id": "akatsuki-rainfall",
-    "name": "Akatsuki Rainfall"
+    "name": "Akatsuki Rainfall",
+    "series": "Naruto",
+    "color": "Crimson"
   },
   {
     "id": "aki-snow-reverie",
-    "name": "Aki Snow Reverie"
+    "name": "Aki Snow Reverie",
+    "series": "Chainsaw Man",
+    "color": "Ocean"
   },
   {
     "id": "akira-midnight",
-    "name": "Akira Midnight"
+    "name": "Akira Midnight",
+    "series": "Akira",
+    "color": "Crimson"
   },
   {
     "id": "alchemy-brothers",
-    "name": "Alchemy Brothers"
+    "name": "Alchemy Brothers",
+    "series": "Fullmetal Alchemist",
+    "color": "Ember"
   },
   {
     "id": "aloy-copper-wilds",
-    "name": "Aloy Copper Wilds"
+    "name": "Aloy Copper Wilds",
+    "series": "Horizon",
+    "color": "Ember"
   },
   {
     "id": "anime-nexus",
-    "name": "Anime Nexus"
+    "name": "Anime Nexus",
+    "series": "Crossover",
+    "color": "Ocean"
   },
   {
     "id": "apothecary-jade-court",
-    "name": "Apothecary Jade Court"
+    "name": "Apothecary Jade Court",
+    "series": "The Apothecary Diaries",
+    "color": "Jade"
   },
   {
     "id": "artorias-abyss-watch",
-    "name": "Artorias Abyss Watch"
+    "name": "Artorias Abyss Watch",
+    "series": "Dark Souls",
+    "color": "Violet"
   },
   {
     "id": "ashen-fire",
-    "name": "Ashen Fire"
+    "name": "Ashen Fire",
+    "series": "Dark Souls",
+    "color": "Ember"
   },
   {
     "id": "astarion-silver-velvet",
-    "name": "Astarion Silver Velvet"
+    "name": "Astarion Silver Velvet",
+    "series": "Baldur's Gate 3",
+    "color": "Crimson"
   },
   {
     "id": "bebop-after-hours",
-    "name": "Bebop After Hours"
+    "name": "Bebop After Hours",
+    "series": "Cowboy Bebop",
+    "color": "Ember"
   },
   {
     "id": "berserk-moonlit-resolve",
-    "name": "Berserk Moonlit Resolve"
+    "name": "Berserk Moonlit Resolve",
+    "series": "Berserk",
+    "color": "Ocean"
   },
   {
     "id": "beru-night-hunt",
-    "name": "Beru Night Hunt"
+    "name": "Beru Night Hunt",
+    "series": "Solo Leveling",
+    "color": "Violet"
   },
   {
     "id": "brook-soul-serenade",
-    "name": "Brook Soul Serenade"
+    "name": "Brook Soul Serenade",
+    "series": "One Piece",
+    "color": "Ocean"
   },
   {
     "id": "butterfly-dream",
-    "name": "Butterfly Dream"
+    "name": "Butterfly Dream",
+    "series": "Demon Slayer",
+    "color": "Violet"
   },
   {
     "id": "byakuya-blossom-night",
-    "name": "Byakuya Blossom Night"
+    "name": "Byakuya Blossom Night",
+    "series": "Bleach",
+    "color": "Rose"
   },
   {
     "id": "cha-hae-in-radiance",
-    "name": "Cha Hae In Radiance"
+    "name": "Cha Hae In Radiance",
+    "series": "Solo Leveling",
+    "color": "Gold"
   },
   {
     "id": "chainsaw-neon",
-    "name": "Chainsaw Neon"
+    "name": "Chainsaw Neon",
+    "series": "Chainsaw Man",
+    "color": "Ember"
   },
   {
     "id": "ciri-emerald-rift",
-    "name": "Ciri Emerald Rift"
+    "name": "Ciri Emerald Rift",
+    "series": "The Witcher",
+    "color": "Jade"
   },
   {
     "id": "clive-phoenix-ash",
-    "name": "Clive Phoenix Ash"
+    "name": "Clive Phoenix Ash",
+    "series": "Final Fantasy",
+    "color": "Ember"
   },
   {
     "id": "commander-shepard-starlight",
-    "name": "Commander Shepard Starlight"
+    "name": "Commander Shepard Starlight",
+    "series": "Mass Effect",
+    "color": "Ocean"
   },
   {
     "id": "crimson-shrine",
-    "name": "Crimson Shrine"
+    "name": "Crimson Shrine",
+    "series": "Jujutsu Kaisen",
+    "color": "Crimson"
   },
   {
     "id": "dante-crimson-encore",
-    "name": "Dante Crimson Encore"
+    "name": "Dante Crimson Encore",
+    "series": "Devil May Cry",
+    "color": "Crimson"
   },
   {
     "id": "doom-argent-fury",
-    "name": "Doom Argent Fury"
+    "name": "Doom Argent Fury",
+    "series": "Doom",
+    "color": "Ember"
   },
   {
     "id": "elden-gold",
-    "name": "Elden Gold"
+    "name": "Elden Gold",
+    "series": "Elden Ring",
+    "color": "Gold"
   },
   {
     "id": "eren-last-horizon",
-    "name": "Eren Last Horizon"
+    "name": "Eren Last Horizon",
+    "series": "Attack on Titan",
+    "color": "Jade"
   },
   {
     "id": "erwin-final-charge",
-    "name": "Erwin Final Charge"
+    "name": "Erwin Final Charge",
+    "series": "Attack on Titan",
+    "color": "Gold"
   },
   {
     "id": "eva-terminal",
-    "name": "Eva Terminal"
+    "name": "Eva Terminal",
+    "series": "Evangelion",
+    "color": "Violet"
   },
   {
     "id": "fern-violet-library",
-    "name": "Fern Violet Library"
+    "name": "Fern Violet Library",
+    "series": "Frieren",
+    "color": "Violet"
   },
   {
     "id": "frieren-starlit-journey",
-    "name": "Frieren Starlit Journey"
+    "name": "Frieren Starlit Journey",
+    "series": "Frieren",
+    "color": "Violet"
   },
   {
     "id": "gaara-desert-stars",
-    "name": "Gaara Desert Stars"
+    "name": "Gaara Desert Stars",
+    "series": "Naruto",
+    "color": "Ember"
   },
   {
     "id": "garrus-archangel-watch",
-    "name": "Garrus Archangel Watch"
+    "name": "Garrus Archangel Watch",
+    "series": "Mass Effect",
+    "color": "Ocean"
   },
   {
     "id": "gear-five-sky",
-    "name": "Gear Five Sky"
+    "name": "Gear Five Sky",
+    "series": "One Piece",
+    "color": "Violet"
   },
   {
     "id": "geralt-silver-hunt",
-    "name": "Geralt Silver Hunt"
+    "name": "Geralt Silver Hunt",
+    "series": "The Witcher",
+    "color": "Jade"
   },
   {
     "id": "ghost-of-tsushima",
-    "name": "Ghost of Tsushima"
+    "name": "Ghost of Tsushima",
+    "series": "Ghost of Tsushima",
+    "color": "Ember"
   },
   {
     "id": "giyu-still-water",
-    "name": "Giyu Still Water"
+    "name": "Giyu Still Water",
+    "series": "Demon Slayer",
+    "color": "Ocean"
   },
   {
     "id": "gojo-hollow-purple",
-    "name": "Gojo Hollow Purple"
+    "name": "Gojo Hollow Purple",
+    "series": "Jujutsu Kaisen",
+    "color": "Violet"
   },
   {
     "id": "hidden-leaf-dawn",
-    "name": "Hidden Leaf Dawn"
+    "name": "Hidden Leaf Dawn",
+    "series": "Naruto",
+    "color": "Ember"
   },
   {
     "id": "hinata-lavender-moon",
-    "name": "Hinata Lavender Moon"
+    "name": "Hinata Lavender Moon",
+    "series": "Naruto",
+    "color": "Violet"
   },
   {
     "id": "hokage-quiet-evening",
-    "name": "Hokage Quiet Evening"
+    "name": "Hokage Quiet Evening",
+    "series": "Naruto",
+    "color": "Ember"
   },
   {
     "id": "hollow-knight-blue-depths",
-    "name": "Hollow Knight Blue Depths"
+    "name": "Hollow Knight Blue Depths",
+    "series": "Hollow Knight",
+    "color": "Ocean"
   },
   {
     "id": "hornet-silk-cathedral",
-    "name": "Hornet Silk Cathedral"
+    "name": "Hornet Silk Cathedral",
+    "series": "Hollow Knight",
+    "color": "Crimson"
   },
   {
     "id": "howl-starfall-castle",
-    "name": "Howl Starfall Castle"
+    "name": "Howl Starfall Castle",
+    "series": "Studio Ghibli",
+    "color": "Violet"
   },
   {
     "id": "hunter-electric",
-    "name": "Hunter Electric"
+    "name": "Hunter Electric",
+    "series": "Hunter x Hunter",
+    "color": "Ocean"
   },
   {
     "id": "hylian-horizon",
-    "name": "Hylian Horizon"
+    "name": "Hylian Horizon",
+    "series": "Zelda",
+    "color": "Jade"
   },
   {
     "id": "igris-crimson-oath",
-    "name": "Igris Crimson Oath"
+    "name": "Igris Crimson Oath",
+    "series": "Solo Leveling",
+    "color": "Crimson"
   },
   {
     "id": "infinite-void",
-    "name": "Infinite Void"
+    "name": "Infinite Void",
+    "series": "Jujutsu Kaisen",
+    "color": "Ocean"
   },
   {
     "id": "jeju-shadow-landing",
-    "name": "Jeju Shadow Landing"
+    "name": "Jeju Shadow Landing",
+    "series": "Solo Leveling",
+    "color": "Violet"
   },
   {
     "id": "jill-sapphire-outbreak",
-    "name": "Jill Sapphire Outbreak"
+    "name": "Jill Sapphire Outbreak",
+    "series": "Resident Evil",
+    "color": "Ocean"
   },
   {
     "id": "jinwoo-neon-seoul",
-    "name": "Jinwoo Neon Seoul"
+    "name": "Jinwoo Neon Seoul",
+    "series": "Solo Leveling",
+    "color": "Ocean"
   },
   {
     "id": "jinx-electric-playground",
-    "name": "Jinx Electric Playground"
+    "name": "Jinx Electric Playground",
+    "series": "League of Legends",
+    "color": "Ocean"
   },
   {
     "id": "kaine-lunar-tears",
-    "name": "Kaine Lunar Tears"
+    "name": "Kaine Lunar Tears",
+    "series": "NieR",
+    "color": "Violet"
   },
   {
     "id": "kakashi-silver-rain",
-    "name": "Kakashi Silver Rain"
+    "name": "Kakashi Silver Rain",
+    "series": "Naruto",
+    "color": "Violet"
   },
   {
     "id": "kratos-northern-dawn",
-    "name": "Kratos Northern Dawn"
+    "name": "Kratos Northern Dawn",
+    "series": "God of War",
+    "color": "Ocean"
   },
   {
     "id": "lady-maria-blood-moon",
-    "name": "Lady Maria Blood Moon"
+    "name": "Lady Maria Blood Moon",
+    "series": "Bloodborne",
+    "color": "Crimson"
   },
   {
     "id": "legends-last-campfire",
-    "name": "Legends Last Campfire"
+    "name": "Legends Last Campfire",
+    "series": "Crossover",
+    "color": "Ember"
   },
   {
     "id": "leon-midnight-extraction",
-    "name": "Leon Midnight Extraction"
+    "name": "Leon Midnight Extraction",
+    "series": "Resident Evil",
+    "color": "Violet"
   },
   {
     "id": "lightning-rose-storm",
-    "name": "Lightning Rose Storm"
+    "name": "Lightning Rose Storm",
+    "series": "Final Fantasy",
+    "color": "Rose"
   },
   {
     "id": "madara-crimson-eclipse",
-    "name": "Madara Crimson Eclipse"
+    "name": "Madara Crimson Eclipse",
+    "series": "Naruto",
+    "color": "Crimson"
   },
   {
     "id": "makima-amber-gaze",
-    "name": "Makima Amber Gaze"
+    "name": "Makima Amber Gaze",
+    "series": "Chainsaw Man",
+    "color": "Ember"
   },
   {
     "id": "malenia-scarlet-bloom",
-    "name": "Malenia Scarlet Bloom"
+    "name": "Malenia Scarlet Bloom",
+    "series": "Elden Ring",
+    "color": "Crimson"
   },
   {
     "id": "megumi-moon-garden",
-    "name": "Megumi Moon Garden"
+    "name": "Megumi Moon Garden",
+    "series": "Jujutsu Kaisen",
+    "color": "Ocean"
   },
   {
     "id": "midgar-requiem",
-    "name": "Midgar Requiem"
+    "name": "Midgar Requiem",
+    "series": "Final Fantasy",
+    "color": "Ocean"
   },
   {
     "id": "mikasa-red-scarf",
-    "name": "Mikasa Red Scarf"
+    "name": "Mikasa Red Scarf",
+    "series": "Attack on Titan",
+    "color": "Crimson"
   },
   {
     "id": "minato-golden-flash",
-    "name": "Minato Golden Flash"
+    "name": "Minato Golden Flash",
+    "series": "Naruto",
+    "color": "Gold"
   },
   {
     "id": "mitsuri-sakura-steel",
-    "name": "Mitsuri Sakura Steel"
+    "name": "Mitsuri Sakura Steel",
+    "series": "Demon Slayer",
+    "color": "Rose"
   },
   {
     "id": "mob-psychic-aurora",
-    "name": "Mob Psychic Aurora"
+    "name": "Mob Psychic Aurora",
+    "series": "Mob Psycho 100",
+    "color": "Violet"
   },
   {
     "id": "monarch-eclipse",
-    "name": "Monarch Eclipse"
+    "name": "Monarch Eclipse",
+    "series": "Solo Leveling",
+    "color": "Violet"
   },
   {
     "id": "monarch-winter-gate",
-    "name": "Monarch Winter Gate"
+    "name": "Monarch Winter Gate",
+    "series": "Solo Leveling",
+    "color": "Ocean"
   },
   {
     "id": "mononoke-ancient-grove",
-    "name": "Mononoke Ancient Grove"
+    "name": "Mononoke Ancient Grove",
+    "series": "Studio Ghibli",
+    "color": "Jade"
   },
   {
     "id": "muichiro-mist-valley",
-    "name": "Muichiro Mist Valley"
+    "name": "Muichiro Mist Valley",
+    "series": "Demon Slayer",
+    "color": "Jade"
   },
   {
     "id": "nami-tangerine-seas",
-    "name": "Nami Tangerine Seas"
+    "name": "Nami Tangerine Seas",
+    "series": "One Piece",
+    "color": "Ember"
   },
   {
     "id": "nexus-all-stars",
-    "name": "Nexus All Stars"
+    "name": "Nexus All Stars",
+    "series": "Crossover",
+    "color": "Violet"
   },
   {
     "id": "nezuko-bamboo-moon",
-    "name": "Nezuko Bamboo Moon"
+    "name": "Nezuko Bamboo Moon",
+    "series": "Demon Slayer",
+    "color": "Crimson"
   },
   {
     "id": "night-city-ronin",
-    "name": "Night City Ronin"
+    "name": "Night City Ronin",
+    "series": "Cyberpunk 2077",
+    "color": "Gold"
   },
   {
     "id": "nobara-rose-steel",
-    "name": "Nobara Rose Steel"
+    "name": "Nobara Rose Steel",
+    "series": "Jujutsu Kaisen",
+    "color": "Crimson"
   },
   {
     "id": "noctis-royal-midnight",
-    "name": "Noctis Royal Midnight"
+    "name": "Noctis Royal Midnight",
+    "series": "Final Fantasy",
+    "color": "Violet"
   },
   {
     "id": "one-winged-night",
-    "name": "One Winged Night"
+    "name": "One Winged Night",
+    "series": "Final Fantasy",
+    "color": "Violet"
   },
   {
     "id": "orbital-sakura-garden",
-    "name": "Orbital Sakura Garden"
+    "name": "Orbital Sakura Garden",
+    "series": "Crossover",
+    "color": "Jade"
   },
   {
     "id": "persona-golden-train",
-    "name": "Persona Golden Train"
+    "name": "Persona Golden Train",
+    "series": "Persona",
+    "color": "Gold"
   },
   {
     "id": "persona-moonlit-hour",
-    "name": "Persona Moonlit Hour"
+    "name": "Persona Moonlit Hour",
+    "series": "Persona",
+    "color": "Ocean"
   },
   {
     "id": "persona-velvet-rain",
-    "name": "Persona Velvet Rain"
+    "name": "Persona Velvet Rain",
+    "series": "Persona",
+    "color": "Crimson"
   },
   {
     "id": "pirate-king-sunset",
-    "name": "Pirate King Sunset"
+    "name": "Pirate King Sunset",
+    "series": "One Piece",
+    "color": "Ember"
   },
   {
     "id": "pochita-cozy-den",
-    "name": "Pochita Cozy Den"
+    "name": "Pochita Cozy Den",
+    "series": "Chainsaw Man",
+    "color": "Ember"
   },
   {
     "id": "power-scarlet-mischief",
-    "name": "Power Scarlet Mischief"
+    "name": "Power Scarlet Mischief",
+    "series": "Chainsaw Man",
+    "color": "Crimson"
   },
   {
     "id": "raiden-violet-eternity",
-    "name": "Raiden Violet Eternity"
+    "name": "Raiden Violet Eternity",
+    "series": "Genshin Impact",
+    "color": "Violet"
   },
   {
     "id": "ranni-lunar-pact",
-    "name": "Ranni Lunar Pact"
+    "name": "Ranni Lunar Pact",
+    "series": "Elden Ring",
+    "color": "Ocean"
   },
   {
     "id": "rengoku-burning-resolve",
-    "name": "Rengoku Burning Resolve"
+    "name": "Rengoku Burning Resolve",
+    "series": "Demon Slayer",
+    "color": "Ember"
   },
   {
     "id": "robin-midnight-bloom",
-    "name": "Robin Midnight Bloom"
+    "name": "Robin Midnight Bloom",
+    "series": "One Piece",
+    "color": "Violet"
   },
   {
     "id": "rukia-frozen-petals",
-    "name": "Rukia Frozen Petals"
+    "name": "Rukia Frozen Petals",
+    "series": "Bleach",
+    "color": "Violet"
   },
   {
     "id": "saiyan-ascension",
-    "name": "Saiyan Ascension"
+    "name": "Saiyan Ascension",
+    "series": "Dragon Ball",
+    "color": "Ocean"
   },
   {
     "id": "samurai-champloo-drift",
-    "name": "Samurai Champloo Drift"
+    "name": "Samurai Champloo Drift",
+    "series": "Samurai Champloo",
+    "color": "Jade"
   },
   {
     "id": "samus-phazon-orbit",
-    "name": "Samus Phazon Orbit"
+    "name": "Samus Phazon Orbit",
+    "series": "Metroid",
+    "color": "Ember"
   },
   {
     "id": "sanji-blue-inferno",
-    "name": "Sanji Blue Inferno"
+    "name": "Sanji Blue Inferno",
+    "series": "One Piece",
+    "color": "Ocean"
   },
   {
     "id": "sasuke-violet-tempest",
-    "name": "Sasuke Violet Tempest"
+    "name": "Sasuke Violet Tempest",
+    "series": "Naruto",
+    "color": "Violet"
   },
   {
     "id": "sekiro-autumn-temple",
-    "name": "Sekiro Autumn Temple"
+    "name": "Sekiro Autumn Temple",
+    "series": "Sekiro",
+    "color": "Ember"
   },
   {
     "id": "shadow-monarch",
-    "name": "Shadow Monarch"
+    "name": "Shadow Monarch",
+    "series": "Solo Leveling",
+    "color": "Violet"
   },
   {
     "id": "shadow-sword-alliance",
-    "name": "Shadow Sword Alliance"
+    "name": "Shadow Sword Alliance",
+    "series": "Crossover",
+    "color": "Violet"
   },
   {
     "id": "shadowheart-moon-prayer",
-    "name": "Shadowheart Moon Prayer"
+    "name": "Shadowheart Moon Prayer",
+    "series": "Baldur's Gate 3",
+    "color": "Violet"
   },
   {
     "id": "shanks-red-horizon",
-    "name": "Shanks Red Horizon"
+    "name": "Shanks Red Horizon",
+    "series": "One Piece",
+    "color": "Crimson"
   },
   {
     "id": "silver-hair-society",
-    "name": "Silver Hair Society"
+    "name": "Silver Hair Society",
+    "series": "Crossover",
+    "color": "Ocean"
   },
   {
     "id": "spike-mars-sunset",
-    "name": "Spike Mars Sunset"
+    "name": "Spike Mars Sunset",
+    "series": "Cowboy Bebop",
+    "color": "Ember"
   },
   {
     "id": "spirited-lantern-river",
-    "name": "Spirited Lantern River"
+    "name": "Spirited Lantern River",
+    "series": "Studio Ghibli",
+    "color": "Ocean"
   },
   {
     "id": "stark-autumn-road",
-    "name": "Stark Autumn Road"
+    "name": "Stark Autumn Road",
+    "series": "Frieren",
+    "color": "Ember"
   },
   {
     "id": "substitute-soul",
-    "name": "Substitute Soul"
+    "name": "Substitute Soul",
+    "series": "Bleach",
+    "color": "Ocean"
   },
   {
     "id": "sun-breathing",
-    "name": "Sun Breathing"
+    "name": "Sun Breathing",
+    "series": "Demon Slayer",
+    "color": "Ember"
   },
   {
     "id": "tengen-festival-night",
-    "name": "Tengen Festival Night"
+    "name": "Tengen Festival Night",
+    "series": "Demon Slayer",
+    "color": "Gold"
   },
   {
     "id": "three-sword-storm",
-    "name": "Three Sword Storm"
+    "name": "Three Sword Storm",
+    "series": "One Piece",
+    "color": "Jade"
   },
   {
     "id": "thunderclap",
-    "name": "Thunderclap"
+    "name": "Thunderclap",
+    "series": "Demon Slayer",
+    "color": "Gold"
   },
   {
     "id": "tidus-ocean-dream",
-    "name": "Tidus Ocean Dream"
+    "name": "Tidus Ocean Dream",
+    "series": "Final Fantasy",
+    "color": "Ocean"
   },
   {
     "id": "toji-midnight-blade",
-    "name": "Toji Midnight Blade"
+    "name": "Toji Midnight Blade",
+    "series": "Jujutsu Kaisen",
+    "color": "Ocean"
   },
   {
     "id": "totoro-rain-shelter",
-    "name": "Totoro Rain Shelter"
+    "name": "Totoro Rain Shelter",
+    "series": "Studio Ghibli",
+    "color": "Jade"
   },
   {
     "id": "trafalgar-azure-room",
-    "name": "Trafalgar Azure Room"
+    "name": "Trafalgar Azure Room",
+    "series": "One Piece",
+    "color": "Ocean"
   },
   {
     "id": "twilight-wolf-guardian",
-    "name": "Twilight Wolf Guardian"
+    "name": "Twilight Wolf Guardian",
+    "series": "Zelda",
+    "color": "Jade"
   },
   {
     "id": "twin-dragons",
-    "name": "Twin Dragons"
+    "name": "Twin Dragons",
+    "series": "Overwatch",
+    "color": "Ocean"
   },
   {
     "id": "uchiha-moon",
-    "name": "Uchiha Moon"
+    "name": "Uchiha Moon",
+    "series": "Naruto",
+    "color": "Crimson"
   },
   {
     "id": "urahara-emerald-haze",
-    "name": "Urahara Emerald Haze"
+    "name": "Urahara Emerald Haze",
+    "series": "Bleach",
+    "color": "Jade"
   },
   {
     "id": "vash-desert-halo",
-    "name": "Vash Desert Halo"
+    "name": "Vash Desert Halo",
+    "series": "Trigun",
+    "color": "Crimson"
   },
   {
     "id": "vergil-azure-judgment",
-    "name": "Vergil Azure Judgment"
+    "name": "Vergil Azure Judgment",
+    "series": "Devil May Cry",
+    "color": "Ocean"
   },
   {
     "id": "violet-letter-garden",
-    "name": "Violet Letter Garden"
+    "name": "Violet Letter Garden",
+    "series": "Violet Evergarden",
+    "color": "Ocean"
   },
   {
     "id": "wings-of-freedom",
-    "name": "Wings of Freedom"
+    "name": "Wings of Freedom",
+    "series": "Attack on Titan",
+    "color": "Jade"
   },
   {
     "id": "yamato-sacred-snow",
-    "name": "Yamato Sacred Snow"
+    "name": "Yamato Sacred Snow",
+    "series": "One Piece",
+    "color": "Jade"
   },
   {
     "id": "yorha-rain",
-    "name": "YorHa Rain"
+    "name": "YorHa Rain",
+    "series": "NieR",
+    "color": "Ocean"
   },
   {
     "id": "yuji-black-flash",
-    "name": "Yuji Black Flash"
+    "name": "Yuji Black Flash",
+    "series": "Jujutsu Kaisen",
+    "color": "Crimson"
   },
   {
     "id": "yuta-cursed-promise",
-    "name": "Yuta Cursed Promise"
+    "name": "Yuta Cursed Promise",
+    "series": "Jujutsu Kaisen",
+    "color": "Jade"
   },
   {
     "id": "zack-sapphire-legacy",
-    "name": "Zack Sapphire Legacy"
+    "name": "Zack Sapphire Legacy",
+    "series": "Final Fantasy",
+    "color": "Ocean"
   },
   {
     "id": "zelda-silent-princess",
-    "name": "Zelda Silent Princess"
+    "name": "Zelda Silent Princess",
+    "series": "Zelda",
+    "color": "Gold"
   }
 ]

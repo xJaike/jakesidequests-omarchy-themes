@@ -300,6 +300,171 @@ def icon_theme(hue, chroma):
             return name
 
 
+# Franchise of each theme, from its wallpaper prompt. Mixed or original themes are "Crossover".
+SERIES = {
+    'akatsuki-rainfall': 'Naruto',
+    'gaara-desert-stars': 'Naruto',
+    'hidden-leaf-dawn': 'Naruto',
+    'hinata-lavender-moon': 'Naruto',
+    'hokage-quiet-evening': 'Naruto',
+    'kakashi-silver-rain': 'Naruto',
+    'madara-crimson-eclipse': 'Naruto',
+    'minato-golden-flash': 'Naruto',
+    'sasuke-violet-tempest': 'Naruto',
+    'uchiha-moon': 'Naruto',
+    'ace-ember-legacy': 'One Piece',
+    'brook-soul-serenade': 'One Piece',
+    'gear-five-sky': 'One Piece',
+    'nami-tangerine-seas': 'One Piece',
+    'pirate-king-sunset': 'One Piece',
+    'robin-midnight-bloom': 'One Piece',
+    'sanji-blue-inferno': 'One Piece',
+    'shanks-red-horizon': 'One Piece',
+    'three-sword-storm': 'One Piece',
+    'trafalgar-azure-room': 'One Piece',
+    'yamato-sacred-snow': 'One Piece',
+    'butterfly-dream': 'Demon Slayer',
+    'giyu-still-water': 'Demon Slayer',
+    'mitsuri-sakura-steel': 'Demon Slayer',
+    'muichiro-mist-valley': 'Demon Slayer',
+    'nezuko-bamboo-moon': 'Demon Slayer',
+    'rengoku-burning-resolve': 'Demon Slayer',
+    'sun-breathing': 'Demon Slayer',
+    'tengen-festival-night': 'Demon Slayer',
+    'thunderclap': 'Demon Slayer',
+    'crimson-shrine': 'Jujutsu Kaisen',
+    'gojo-hollow-purple': 'Jujutsu Kaisen',
+    'infinite-void': 'Jujutsu Kaisen',
+    'megumi-moon-garden': 'Jujutsu Kaisen',
+    'nobara-rose-steel': 'Jujutsu Kaisen',
+    'toji-midnight-blade': 'Jujutsu Kaisen',
+    'yuji-black-flash': 'Jujutsu Kaisen',
+    'yuta-cursed-promise': 'Jujutsu Kaisen',
+    'aizen-celestial-mirror': 'Bleach',
+    'byakuya-blossom-night': 'Bleach',
+    'rukia-frozen-petals': 'Bleach',
+    'substitute-soul': 'Bleach',
+    'urahara-emerald-haze': 'Bleach',
+    'eren-last-horizon': 'Attack on Titan',
+    'erwin-final-charge': 'Attack on Titan',
+    'mikasa-red-scarf': 'Attack on Titan',
+    'wings-of-freedom': 'Attack on Titan',
+    'aki-snow-reverie': 'Chainsaw Man',
+    'chainsaw-neon': 'Chainsaw Man',
+    'makima-amber-gaze': 'Chainsaw Man',
+    'pochita-cozy-den': 'Chainsaw Man',
+    'power-scarlet-mischief': 'Chainsaw Man',
+    'beru-night-hunt': 'Solo Leveling',
+    'cha-hae-in-radiance': 'Solo Leveling',
+    'igris-crimson-oath': 'Solo Leveling',
+    'jeju-shadow-landing': 'Solo Leveling',
+    'jinwoo-neon-seoul': 'Solo Leveling',
+    'monarch-eclipse': 'Solo Leveling',
+    'monarch-winter-gate': 'Solo Leveling',
+    'shadow-monarch': 'Solo Leveling',
+    'aerith-flower-sanctuary': 'Final Fantasy',
+    'clive-phoenix-ash': 'Final Fantasy',
+    'lightning-rose-storm': 'Final Fantasy',
+    'midgar-requiem': 'Final Fantasy',
+    'noctis-royal-midnight': 'Final Fantasy',
+    'one-winged-night': 'Final Fantasy',
+    'tidus-ocean-dream': 'Final Fantasy',
+    'zack-sapphire-legacy': 'Final Fantasy',
+    'elden-gold': 'Elden Ring',
+    'malenia-scarlet-bloom': 'Elden Ring',
+    'ranni-lunar-pact': 'Elden Ring',
+    'artorias-abyss-watch': 'Dark Souls',
+    'ashen-fire': 'Dark Souls',
+    'lady-maria-blood-moon': 'Bloodborne',
+    'sekiro-autumn-temple': 'Sekiro',
+    'berserk-moonlit-resolve': 'Berserk',
+    'persona-golden-train': 'Persona',
+    'persona-moonlit-hour': 'Persona',
+    'persona-velvet-rain': 'Persona',
+    'a2-desert-memory': 'NieR',
+    'kaine-lunar-tears': 'NieR',
+    'yorha-rain': 'NieR',
+    'ciri-emerald-rift': 'The Witcher',
+    'geralt-silver-hunt': 'The Witcher',
+    'astarion-silver-velvet': "Baldur's Gate 3",
+    'shadowheart-moon-prayer': "Baldur's Gate 3",
+    'commander-shepard-starlight': 'Mass Effect',
+    'garrus-archangel-watch': 'Mass Effect',
+    'jill-sapphire-outbreak': 'Resident Evil',
+    'leon-midnight-extraction': 'Resident Evil',
+    'hylian-horizon': 'Zelda',
+    'twilight-wolf-guardian': 'Zelda',
+    'zelda-silent-princess': 'Zelda',
+    'samus-phazon-orbit': 'Metroid',
+    'hollow-knight-blue-depths': 'Hollow Knight',
+    'hornet-silk-cathedral': 'Hollow Knight',
+    'howl-starfall-castle': 'Studio Ghibli',
+    'mononoke-ancient-grove': 'Studio Ghibli',
+    'spirited-lantern-river': 'Studio Ghibli',
+    'totoro-rain-shelter': 'Studio Ghibli',
+    'fern-violet-library': 'Frieren',
+    'frieren-starlit-journey': 'Frieren',
+    'stark-autumn-road': 'Frieren',
+    'saiyan-ascension': 'Dragon Ball',
+    'bebop-after-hours': 'Cowboy Bebop',
+    'spike-mars-sunset': 'Cowboy Bebop',
+    'dante-crimson-encore': 'Devil May Cry',
+    'vergil-azure-judgment': 'Devil May Cry',
+    'hunter-electric': 'Hunter x Hunter',
+    'mob-psychic-aurora': 'Mob Psycho 100',
+    'alchemy-brothers': 'Fullmetal Alchemist',
+    'eva-terminal': 'Evangelion',
+    'night-city-ronin': 'Cyberpunk 2077',
+    'ghost-of-tsushima': 'Ghost of Tsushima',
+    'kratos-northern-dawn': 'God of War',
+    'aloy-copper-wilds': 'Horizon',
+    'vash-desert-halo': 'Trigun',
+    'samurai-champloo-drift': 'Samurai Champloo',
+    'akira-midnight': 'Akira',
+    'violet-letter-garden': 'Violet Evergarden',
+    'apothecary-jade-court': 'The Apothecary Diaries',
+    'doom-argent-fury': 'Doom',
+    'ahri-spirit-blossom': 'League of Legends',
+    'jinx-electric-playground': 'League of Legends',
+    'raiden-violet-eternity': 'Genshin Impact',
+    'twin-dragons': 'Overwatch',
+    'anime-nexus': 'Crossover',
+    'nexus-all-stars': 'Crossover',
+    'silver-hair-society': 'Crossover',
+    'legends-last-campfire': 'Crossover',
+    'shadow-sword-alliance': 'Crossover',
+    'orbital-sakura-garden': 'Crossover',
+}
+
+COLOR_FAMILIES = ('Crimson', 'Ember', 'Gold', 'Jade', 'Ocean', 'Violet', 'Rose', 'Silver')
+
+
+def color_family(hex_accent):
+    """Name the accent's color family from its OKLCH hue and chroma."""
+    _, chroma, hue = hex_to_lch(hex_accent)
+    if chroma < 0.06:
+        return 'Silver'
+    if hue >= 350 or hue < 20:
+        return 'Crimson'
+    for limit, name in ((60, 'Ember'), (110, 'Gold'), (190, 'Jade'), (265, 'Ocean'), (315, 'Violet'), (350, 'Rose')):
+        if hue < limit:
+            return name
+
+
+def write_catalog():
+    """Add each theme's series and color family to catalog.json, keeping order and other fields."""
+    path = ROOT / 'catalog.json'
+    entries = json.loads(path.read_text())
+    missing = [entry['id'] for entry in entries if entry['id'] not in SERIES]
+    if missing:
+        raise SystemExit('Missing from SERIES: ' + ', '.join(missing))
+    for entry in entries:
+        accent = re.search(r'^accent = "(#[0-9a-fA-F]{6})"', (ROOT / entry['id'] / 'colors.toml').read_text(), re.M)
+        entry['series'] = SERIES[entry['id']]
+        entry['color'] = color_family(accent.group(1).lower())
+    path.write_text(json.dumps(entries, indent=2, ensure_ascii=False) + '\n')
+
+
 # ---------- writing files ----------
 
 COLOR_ORDER = ['mode', 'accent', 'selection', 'muted', 'background', 'dark_background', 'darker_background',
@@ -345,15 +510,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('themes', nargs='*')
     parser.add_argument('--dry-run', action='store_true')
+    parser.add_argument('--catalog-only', action='store_true', help='Only refresh series/color in catalog.json')
     args = parser.parse_args()
     if not TEMPLATE.exists():
         parser.exit(1, f'Missing Omarchy shell template: {TEMPLATE}\n')
     slugs = args.themes or [item['id'] for item in json.loads((ROOT / 'catalog.json').read_text())
                             if item['id'] not in HAND_TUNED]
-    for slug in slugs:
+    for slug in [] if args.catalog_only else slugs:
         colors = process(slug, args.dry_run)
         print(f"{slug:32} bg {colors['background']}  accent {colors['accent']}  "
               f"{colors['hyprland_active_border'].split()[1][5:11]}", file=sys.stderr)
+    if not args.dry_run:
+        write_catalog()
 
 
 if __name__ == '__main__':

@@ -36,6 +36,30 @@ class PaletteTests(unittest.TestCase):
                     hue = palettes.hex_to_lch(c[name])[2]
                     self.assertLessEqual(abs(palettes.hue_delta((low + high) / 2, hue)), (high - low) / 2 + 2)
 
+    def test_color_family_boundaries(self):
+        lch = palettes.lch
+        self.assertEqual(palettes.color_family(lch(0.8, 0.12, 355)), 'Crimson')
+        self.assertEqual(palettes.color_family(lch(0.8, 0.12, 10)), 'Crimson')
+        self.assertEqual(palettes.color_family(lch(0.8, 0.12, 40)), 'Ember')
+        self.assertEqual(palettes.color_family(lch(0.8, 0.12, 85)), 'Gold')
+        self.assertEqual(palettes.color_family(lch(0.8, 0.12, 150)), 'Jade')
+        self.assertEqual(palettes.color_family(lch(0.8, 0.12, 230)), 'Ocean')
+        self.assertEqual(palettes.color_family(lch(0.8, 0.12, 290)), 'Violet')
+        self.assertEqual(palettes.color_family(lch(0.8, 0.12, 330)), 'Rose')
+        self.assertEqual(palettes.color_family(lch(0.8, 0.03, 290)), 'Silver')
+
+    def test_catalog_has_series_and_color(self):
+        entries = json.loads((ROOT / 'catalog.json').read_text())
+        self.assertEqual({e['id'] for e in entries}, set(palettes.SERIES))
+        for e in entries:
+            self.assertIn(e['color'], palettes.COLOR_FAMILIES)
+            self.assertTrue(e['series'])
+        by_id = {e['id']: e['series'] for e in entries}
+        self.assertEqual(by_id['madara-crimson-eclipse'], 'Naruto')
+        self.assertEqual(by_id['gojo-hollow-purple'], 'Jujutsu Kaisen')
+        self.assertEqual(by_id['geralt-silver-hunt'], 'The Witcher')
+        self.assertEqual(by_id['totoro-rain-shelter'], 'Studio Ghibli')
+
     def test_palette_values_are_well_formed(self):
         for slug in THEMES:
             c = colors(slug)

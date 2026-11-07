@@ -19,7 +19,7 @@ class InstallTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.source = self.root / 'bundle'
         self.source.mkdir()
-        (self.source / 'catalog.json').write_text(json.dumps([{'id': 'sample', 'name': 'Sample'}]))
+        (self.source / 'catalog.json').write_text(json.dumps([{'id': 'sample', 'name': 'Sample', 'series': 'Test', 'color': 'Violet'}]))
         theme = self.source / 'sample'
         theme.mkdir()
         (theme / 'colors.toml').write_text('background = "#123456"')
@@ -55,6 +55,11 @@ class InstallTests(unittest.TestCase):
             run.return_value.returncode = 0
             self.assertTrue(picker.install('sample'))
         self.assertEqual(len(list(self.target.glob('.jake-theme-backup-*/sample/original'))), 1)
+
+    def test_catalog_requires_series_and_color(self):
+        (self.source / 'catalog.json').write_text(json.dumps([{'id': 'sample', 'name': 'Sample'}]))
+        with self.assertRaisesRegex(ValueError, 'Missing series/color: sample'):
+            picker.catalog()
 
     def test_unknown_slug_and_symlink_refused(self):
         with self.assertRaises(ValueError):

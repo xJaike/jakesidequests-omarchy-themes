@@ -24,6 +24,8 @@ def catalog():
         slug = item['id']
         if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', slug):
             raise ValueError('Invalid theme identifier')
+        if not item.get('series') or not item.get('color'):
+            raise ValueError(f'Missing series/color: {slug}')
         source = ROOT / slug
         if not source.is_dir() or source.is_symlink():
             raise ValueError(f'Missing theme: {slug}')
