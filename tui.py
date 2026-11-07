@@ -41,6 +41,7 @@ class Model:
     prompt: str | None = None
     message: str | None = None
     error: bool = False
+    installed: set = field(default_factory=set)
 
     def filtered(self):
         if self.view == 'recent':
@@ -364,3 +365,194 @@ def _click(model, event, layout):
                 return 'apply'
             model.index = index
     return None
+
+
+# ---------- painting ----------
+
+FAMILY_SWATCH = {'Crimson': '#ff7c8f', 'Ember': '#ffa070', 'Gold': '#e5bb5a', 'Jade': '#5fd6a8',
+                 'Ocean': '#7cb7ff', 'Violet': '#b79cff', 'Rose': '#f59bc8', 'Silver': '#c0c4cc'}
+KEY_HINTS = (('←→', 'browse'), ('Enter', 'apply'), ('f', 'favorite'), ('r', 'surprise'),
+             ('/', 'search'), ('tab', 'filters'), ('esc', 'quit'))
+OUTDATED_PROMPT = 'u update & apply (backup kept) · a apply my copy · Esc cancel'
+RESET = '\x1b[0m'
+
+
+def _rgb(value):
+    return ';'.join(str(int(value[i:i + 2], 16)) for i in (1, 3, 5))
+
+
+def fg(value):
+    return f'\x1b[38;2;{_rgb(value)}m'
+
+
+def bg(value):
+    return f'\x1b[48;2;{_rgb(value)}m'
+
+
+def goto(x, y):
+    return f'\x1b[{y + 1};{x + 1}H'
+
+
+def _fit(text, width):
+    return text if len(text) <= width else text[:max(0, width - 1)] + '…'
+
+
+def _fill(rect, color):
+    return ''.join(goto(rect.x, rect.y + row) + bg(color) + ' ' * rect.w for row in range(rect.h))
+
+
+def _center(rect, text, color):
+    text = _fit(text, rect.w)
+    return goto(rect.x + max(0, (rect.w - len(text)) // 2), rect.y + rect.h // 2) + fg(color) + text
+
+
+def _sample_lines(p):
+    c = lambda key, text: fg(p[key]) + text
+    return [
+        f"{c('green', '❯')} {c('blue', '~/projects')} {c('magenta', 'git:(main)')} {c('foreground', 'ls')}",
+        f"{c('blue', 'src')}  {c('blue', 'tests')}  {c('green', 'build.sh')}  {c('foreground', 'README.md')}",
+        f"{c('green', '❯')} {c('foreground', 'git status -s')}",
+        f" {c('yellow', 'M')} {c('foreground', 'theme_picker.py')}",
+        f" {c('red', 'D')} {c('foreground', 'old_menu.py')}",
+        f"{c('cyan', '??')} {c('foreground', 'filmstrip.py')}",
+        f"{c('green', '❯')} {c('foreground', 'make test')}",
+        f"{c('green', '✓ 14 passed')} {c('yellow', '⚠ 1 skipped')} {c('red', '✗ 0')}",
+        f"{c('muted', '# comment')}  {bg(p['selection'])}{c('foreground', ' selection ')}{bg(p['background'])}",
+        f"{c('green', '❯')} {bg(p['accent'])} {bg(p['background'])}",
+    ]
+
+
+def _status_text(model, theme):
+    if theme.id == model.current:
+        return 'current'
+    return 'installed' if theme.id in model.installed else 'not installed'
+
+
+def paint_frame(model, layout, images, sixel):
+    """Every text cell of the screen, painted in the selected theme's palette, plus cached thumbnails."""
+    theme = model.selected()
+    p = (theme or model.themes[0]).palette
+    base = bg(p['background'])
+    out = ['\x1b[?2026h', RESET, base, '\x1b[2J']
+    cols = layout.header.w
+    if layout.mode == 'tiny':
+        out.append(_center(Rect(0, 0, cols, max(1, layout.chips.y + 2)), 'Enlarge window to browse themes', p['foreground']))
+        out += [RESET, '\x1b[?2026l']
+        return _encode(out)
+    # header: search + position
+    cursor = '_' if model.focus == 'search' else ''
+    out += [goto(1, 0), fg(p['muted']), 'search: ', fg(p['foreground']), model.search, cursor]
+    total = len(model.filtered())
+    position = f'Jake Sidequests · {model.index + 1 if theme else 0}/{total}'
+    out += [goto(max(0, cols - len(position) - 1), 0), fg(p['muted']), position]
+    # chips
+    for k, (start, _, chip) in enumerate(chip_spans(model, layout)):
+        focused = model.focus in ('chips', 'series') and k == model.chip_index
+        if chip.active:
+            style = bg(p['accent']) + fg(p['background'])
+        elif focused:
+            style = bg(p['selection']) + fg(p['foreground'])
+        else:
+            style = base + fg(p['foreground'] if chip.kind == 'color' else p['muted'])
+        label = chip_label(chip)
+        if chip.kind == 'color':
+            dot = fg(FAMILY_SWATCH.get(chip.value, p['accent'])) if not chip.active else ''
+            label = f' {dot}●{style} {chip.label} '
+        out += [goto(start, layout.chips.y), style, label, base]
+    out += [goto(0, 2), fg(p['accent']), '─' * cols]
+    # stage
+    stage = layout.stage
+    if theme is None:
+        out.append(_center(stage, 'No themes match', p['muted']))
+    else:
+        out.append(_fill(stage, p['lighter_background']))
+        if not sixel:
+            out.append(bg(p['lighter_background']) + _center(stage, 'Images need a Sixel terminal such as foot', p['muted']))
+        if model.focus == 'series':
+            out.append(_series_box(model, stage, p))
+        out.append(base)
+        if layout.sample:
+            sample = layout.sample
+            for row, line in enumerate(_sample_lines(p)[:max(0, sample.h - 2)]):
+                out += [goto(sample.x + 2, sample.y + 1 + row), base, line]
+    # info line
+    info = layout.info
+    out.append(goto(1, info.y) + base)
+    if model.prompt == 'outdated':
+        out += [fg(p['foreground']), OUTDATED_PROMPT]
+    elif model.message:
+        out += [fg(p['red'] if model.error else p['foreground']), model.message]
+    elif theme:
+        out += [fg(p['accent']), '\x1b[1m', theme.name, '\x1b[22m', fg(p['muted']),
+                f' · {theme.series} · {_status_text(model, theme)}']
+    hints = '  '.join(f'{k} {v}' for k, v in KEY_HINTS)
+    out += [goto(max(0, cols - len(hints) - 1), info.y)]
+    out += ['  '.join(f'{fg(p["foreground"])}{k} {fg(p["muted"])}{v}' for k, v in KEY_HINTS)]
+    out += [goto(0, info.y + 1), fg(p['lighter_background']), '─' * cols]
+    # filmstrip
+    themes = model.filtered()
+    start = film_start(model, layout)
+    thumb_rows = layout.film[0].h - 2 if layout.film else 0
+    for k, card in enumerate(layout.film):
+        index = start + k
+        if index >= len(themes):
+            break
+        item = themes[index]
+        data = images.get('thumb', item.id, *layout.thumb_px) if sixel else None
+        if data is None:
+            out.append(_fill(Rect(card.x, card.y, card.w, thumb_rows), item.palette['lighter_background']))
+            out.append(goto(card.x, card.y) + base)
+        badges = ('★' if item.id in model.favorites else '') + ('●' if item.id == model.current else '')
+        name = _fit((badges + ' ' if badges else '') + item.name, card.w)
+        color = p['accent'] if index == model.index else p['muted']
+        out += [goto(card.x, card.y + thumb_rows), base, fg(color), name]
+        strip_keys = ('accent', 'second', 'red', 'green', 'blue', 'magenta')
+        width = max(1, card.w // len(strip_keys))
+        out.append(goto(card.x, card.y + thumb_rows + 1))
+        out += [fg(item.palette[key]) + '▀' * width for key in strip_keys]
+        if data is not None:
+            out += [goto(card.x, card.y), RESET, data, base]
+    out += [RESET, '\x1b[?2026l']
+    return _encode(out)
+
+
+def _encode(parts):
+    """Join text (UTF-8) and Sixel payloads (already bytes)."""
+    return b''.join(part if isinstance(part, bytes) else part.encode('utf-8') for part in parts)
+
+
+def _series_box(model, stage, p):
+    options = ['any'] + [f'{name} ({count})' for name, count in model.series_options()]
+    width = min(stage.w - 4, max(len(option) for option in options) + 4)
+    height = min(stage.h - 2, len(options))
+    top = max(0, min(model.series_index - height // 2, len(options) - height))
+    x, y = stage.x + 2, stage.y + 1
+    out = []
+    for row in range(height):
+        option = options[top + row]
+        style = bg(p['selection']) if top + row == model.series_index else bg(p['background'])
+        out += [goto(x, y + row), style, fg(p['foreground']), f' {_fit(option, width - 2):<{width - 2}} ']
+    return ''.join(out)
+
+
+def paint_stage(model, layout, images):
+    """The stage Sixel at the stage's top-left, or None when it is not cached yet."""
+    theme = model.selected()
+    if layout.stage is None or theme is None or model.focus == 'series':
+        return None
+    data = images.get('stage', theme.id, *layout.stage_px)
+    if data is None:
+        return None
+    return goto(layout.stage.x, layout.stage.y).encode() + data
+
+
+def wanted_images(model, layout):
+    """Images the screen needs at the current layout's sizes: stages first, then visible thumbnails."""
+    themes = model.filtered()
+    if layout.stage is None or not themes:
+        return []
+    jobs = [('stage', themes[i].id, *layout.stage_px)
+            for i in (model.index, model.index + 1, model.index - 1) if 0 <= i < len(themes)]
+    start = film_start(model, layout)
+    jobs += [('thumb', theme.id, *layout.thumb_px) for theme in themes[start:start + len(layout.film)]]
+    return jobs
