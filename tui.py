@@ -167,3 +167,200 @@ def compute_layout(cols, rows, cell_w, cell_h):
     film = [Rect(k * (card_w + 1), film_y, card_w, film_h) for k in range(count)]
     return Layout('wide' if wide else 'narrow', header, chips, stage, sample, info, film,
                   (stage.w * cell_w, stage.h * cell_h), (card_w * cell_w, thumb_rows * cell_h))
+
+
+# ---------- input ----------
+
+@dataclass(frozen=True)
+class Event:
+    kind: str
+    value: object = None
+    x: int = 0
+    y: int = 0
+
+
+CSI_KEYS = {'A': 'up', 'B': 'down', 'C': 'right', 'D': 'left', 'H': 'home', 'F': 'end'}
+TILDE_KEYS = {'1': 'home', '7': 'home', '4': 'end', '8': 'end'}
+CONTROL_KEYS = {'\r': 'enter', '\n': 'enter', '\t': 'tab', '\x7f': 'backspace', '\x08': 'backspace',
+                '\x03': 'ctrl-c', ' ': 'space'}
+
+
+def parse_input(data):
+    """Split one read from the terminal into key, character and mouse events."""
+    text = data.decode('utf-8', errors='ignore')
+    events, i = [], 0
+    while i < len(text):
+        ch = text[i]
+        if ch == '\x1b':
+            if i + 1 < len(text) and text[i + 1] in '[O':
+                j = i + 2
+                while j < len(text) and not '\x40' <= text[j] <= '\x7e':  # CSI final byte
+                    j += 1
+                if j >= len(text):
+                    break  # truncated sequence: drop it
+                body, final = text[i + 2:j], text[j]
+                i = j + 1
+                if body.startswith('<'):
+                    events.extend(_mouse(body[1:], final))
+                elif final in CSI_KEYS:
+                    events.append(Event('key', CSI_KEYS[final]))
+                elif final == '~' and body in TILDE_KEYS:
+                    events.append(Event('key', TILDE_KEYS[body]))
+                continue
+            events.append(Event('key', 'esc'))
+        elif ch in CONTROL_KEYS:
+            events.append(Event('key', CONTROL_KEYS[ch]))
+        elif ch.isprintable():
+            events.append(Event('char', ch))
+        i += 1
+    return events
+
+
+def _mouse(params, final):
+    try:
+        button, x, y = (int(part) for part in params.split(';'))
+    except ValueError:
+        return []
+    if final != 'M':
+        return []
+    if button == 0:
+        return [Event('click', None, x - 1, y - 1)]
+    if button in (64, 65):
+        return [Event('wheel', -1 if button == 64 else 1)]
+    return []
+
+
+def film_start(model, layout):
+    """Index of the first theme shown in the filmstrip, keeping the selection centered."""
+    total, count = len(model.filtered()), len(layout.film)
+    return max(0, min(model.index - count // 2, max(0, total - count)))
+
+
+def chip_label(chip):
+    return f' ● {chip.label} ' if chip.kind == 'color' else f' {chip.label} '
+
+
+def chip_spans(model, layout):
+    """Column range [start, end) of every chip on the chips row."""
+    spans, x = [], 1
+    for chip in model.chips():
+        width = len(chip_label(chip))
+        spans.append((x, x + width, chip))
+        x += width + 1
+    return spans
+
+
+def _activate_chip(model, chip):
+    if chip.kind == 'view':
+        model.set_view(chip.value)
+    elif chip.kind == 'series':
+        names = [name for name, _ in model.series_options()]
+        model.series_index = names.index(model.series) + 1 if model.series in names else 0
+        model.focus = 'series'
+    else:
+        model.toggle_color(chip.value)
+
+
+def dispatch(model, event, layout, rng):
+    """Apply one event to the model. Returns 'apply', 'update', 'apply-copy', 'save', 'quit' or None."""
+    name = event.value if event.kind == 'key' else None
+    char = event.value if event.kind == 'char' else None
+    if name == 'ctrl-c':
+        return 'quit'
+    if model.prompt == 'outdated':
+        if char == 'u':
+            return 'update'
+        if char == 'a':
+            return 'apply-copy'
+        if name == 'esc':
+            model.prompt = None
+        return None
+    if event.kind == 'wheel':
+        model.move(event.value)
+        return None
+    if event.kind == 'click':
+        return _click(model, event, layout)
+    if model.focus == 'series':
+        options = [None] + [series for series, _ in model.series_options()]
+        if name in ('up', 'down'):
+            model.series_index = max(0, min(len(options) - 1, model.series_index + (1 if name == 'down' else -1)))
+        elif name in ('enter', 'space'):
+            model.set_series(options[model.series_index])
+            model.focus = 'chips'
+        elif name == 'esc':
+            model.focus = 'chips'
+        return None
+    if model.focus == 'search':
+        if char is not None or name == 'space':
+            model.type_char(char or ' ')
+        elif name == 'backspace':
+            model.backspace()
+        elif name == 'esc':
+            if model.search:
+                model.search = ''
+                model._reselect(None)
+            model.focus = 'film'
+        elif name in ('left', 'right'):
+            model.move(1 if name == 'right' else -1)
+        elif name == 'tab':
+            model.focus = 'chips'
+        elif name == 'enter':
+            return 'apply' if model.selected() else None
+        return None
+    if model.focus == 'chips':
+        chips = model.chips()
+        if name in ('left', 'right'):
+            model.chip_index = max(0, min(len(chips) - 1, model.chip_index + (1 if name == 'right' else -1)))
+        elif name in ('enter', 'space'):
+            _activate_chip(model, chips[model.chip_index])
+        elif name in ('tab', 'esc'):
+            model.focus = 'film'
+        elif char == 'q':
+            return 'quit'
+        return None
+    # filmstrip focus
+    if name in ('left', 'right') or char in ('h', 'l'):
+        model.move(1 if name == 'right' or char == 'l' else -1)
+    elif name == 'home':
+        model.home()
+    elif name == 'end':
+        model.end()
+    elif name == 'enter':
+        return 'apply' if model.selected() else None
+    elif name == 'tab':
+        model.focus = 'chips'
+    elif name == 'esc':
+        return 'quit'
+    elif char == 'q':
+        return 'quit'
+    elif char == 'f':
+        theme = model.selected()
+        if theme:
+            model.favorites.symmetric_difference_update({theme.id})
+            return 'save'
+    elif char == 'r':
+        model.surprise(rng)
+    elif char == '/':
+        model.focus = 'search'
+    elif char is not None:
+        model.focus = 'search'
+        model.type_char(char)
+    return None
+
+
+def _click(model, event, layout):
+    if event.y == layout.chips.y:
+        for start, end, chip in chip_spans(model, layout):
+            if start <= event.x < end:
+                _activate_chip(model, chip)
+        return None
+    start = film_start(model, layout)
+    for k, card in enumerate(layout.film):
+        if card.x <= event.x < card.x + card.w and card.y <= event.y < card.y + card.h:
+            index = start + k
+            if index >= len(model.filtered()):
+                return None
+            if index == model.index:
+                return 'apply'
+            model.index = index
+    return None
