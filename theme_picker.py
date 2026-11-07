@@ -130,67 +130,6 @@ def apply(slug):
         raise RuntimeError((result.stderr or '').strip() or f'omarchy theme set failed ({result.returncode})')
 
 
-def foot_ini():
-    return Path(os.environ.get('XDG_CONFIG_HOME', str(Path.home() / '.config'))) / 'foot/foot.ini'
-
-
-def _foot_settings(path, seen=None):
-    """(section, key, value) for every setting in a foot.ini, following include= in place like foot does."""
-    seen = set() if seen is None else seen
-    path = Path(os.path.expanduser(str(path)))
-    if path in seen:
-        return
-    seen.add(path)
-    try:
-        lines = path.read_text().splitlines()
-    except OSError:
-        return
-    section = 'main'
-    for line in lines:
-        line = line.strip()
-        if not line or line.startswith('#'):
-            continue
-        if line.startswith('[') and line.endswith(']'):
-            section = line[1:-1].strip()
-        elif '=' in line:
-            key, value = (part.strip() for part in line.split('=', 1))
-            if key == 'include':
-                yield from _foot_settings(value, seen)
-            else:
-                yield section, key, value
-
-
-def terminal_alpha(path=None):
-    """foot's background opacity (last alpha in a colors section wins), 1.0 when unset or invalid."""
-    alpha = 1.0
-    for section, key, value in _foot_settings(path or foot_ini()):
-        if section.startswith('colors') and key == 'alpha':
-            try:
-                alpha = min(1.0, max(0.0, float(value)))
-            except ValueError:
-                pass
-    return alpha
-
-
-def terminal_font_family(path=None):
-    family = None
-    for section, key, value in _foot_settings(path or foot_ini()):
-        if section == 'main' and key == 'font':
-            family = value.split(',')[0].split(':')[0].strip() or None
-    return family
-
-
-def font_file(family):
-    """Font file for a fontconfig family name, or None."""
-    if not family:
-        return None
-    try:
-        result = subprocess.run(['fc-match', '-f', '%{file}', family], capture_output=True, text=True)
-    except OSError:
-        return None
-    return result.stdout.strip() or None
-
-
 def state_path():
     return state_home() / 'jake-sidequests-themes/state.json'
 
@@ -258,10 +197,7 @@ def main():
                       installed=installed)
     if current:
         model.select_id(current)
-    model.alpha = terminal_alpha()
-    images = previews.Previews(ROOT, cache_dir(), palette)
-    images.sample_settings(alpha=model.alpha, font=font_file(terminal_font_family()), segments=tui.sample_segments)
-    tui.run(model, images, sys.modules[__name__], state)
+    tui.run(model, previews.Previews(ROOT, cache_dir(), palette), sys.modules[__name__], state)
 
 
 if __name__ == '__main__':

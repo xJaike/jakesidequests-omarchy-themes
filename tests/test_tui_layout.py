@@ -26,7 +26,6 @@ class LayoutTests(unittest.TestCase):
         self.assertLess(layout.info.y, layout.film[0].y)
         self.assertEqual(layout.sample.y, layout.stage.y)
         self.assertGreaterEqual(layout.sample.x, layout.stage.x + layout.stage.w)
-        self.assertEqual(layout.sample_px, (layout.sample.w * 10, layout.sample.h * 20))
         card = layout.film[0]
         self.assertEqual(layout.thumb_px, (card.w * 10, (card.h - 2) * 20))
 

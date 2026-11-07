@@ -53,7 +53,6 @@ class Model:
     message: str | None = None
     error: bool = False
     installed: set = field(default_factory=set)
-    alpha: float = 1.0
 
     def filtered(self):
         if self.view == 'recent':
@@ -159,7 +158,6 @@ class Layout:
     film: list
     stage_px: tuple
     thumb_px: tuple
-    sample_px: tuple = (0, 0)
 
 
 def compute_layout(cols, rows, cell_w, cell_h):
@@ -180,8 +178,7 @@ def compute_layout(cols, rows, cell_w, cell_h):
     film_y = info.y + 2
     film = [Rect(k * (card_w + 1), film_y, card_w, film_h) for k in range(count)]
     return Layout('wide' if wide else 'narrow', header, chips, stage, sample, info, film,
-                  (stage.w * cell_w, stage.h * cell_h), (card_w * cell_w, thumb_rows * cell_h),
-                  (sample.w * cell_w, sample.h * cell_h) if sample else (0, 0))
+                  (stage.w * cell_w, stage.h * cell_h), (card_w * cell_w, thumb_rows * cell_h))
 
 
 # ---------- input ----------
@@ -410,6 +407,15 @@ OUTDATED_PROMPT = 'u update & apply (backup kept) · a apply my copy · Esc canc
 RESET = '\x1b[0m'
 
 
+DEFAULT_BG = '\x1b[49m'
+
+
+def terminal_colors(p):
+    """OSC 10/11: make the terminal's default foreground/background this theme's colors."""
+    rgb = lambda value: f'rgb:{value[1:3]}/{value[3:5]}/{value[5:7]}'
+    return f'\x1b]10;{rgb(p["foreground"])}\x1b\\\x1b]11;{rgb(p["background"])}\x1b\\'
+
+
 def _rgb(value):
     return ';'.join(str(int(value[i:i + 2], 16)) for i in (1, 3, 5))
 
@@ -491,8 +497,9 @@ def paint_frame(model, layout, images, sixel):
     """Every text cell of the screen, painted in the selected theme's palette, plus cached thumbnails."""
     theme = model.selected()
     p = (theme or model.themes[0]).palette
-    base = bg(p['background'])
-    out = ['\x1b[?2026h', RESET, base, '\x1b[2J']
+    # Base cells use the terminal's default background, re-tinted to this theme, so foot's opacity applies.
+    base = DEFAULT_BG
+    out = ['\x1b[?2026h', RESET, terminal_colors(p), base, '\x1b[2J']
     cols = layout.header.w
     if layout.mode == 'tiny':
         out.append(_center(Rect(0, 0, cols, max(1, layout.chips.y + 2)), 'Enlarge window to browse themes', p['foreground']))
@@ -619,7 +626,7 @@ def _series_box(model, stage, p):
     out = []
     for row in range(height):
         option = options[top + row]
-        style = bg(p['selection']) if top + row == model.series_index else bg(p['background'])
+        style = bg(p['selection']) if top + row == model.series_index else DEFAULT_BG
         out += [goto(x, y + row), style, fg(p['foreground']), f' {_fit(option, width - 2):<{width - 2}} ']
     return ''.join(out)
 
@@ -635,17 +642,6 @@ def paint_stage(model, layout, images):
     return goto(layout.stage.x, layout.stage.y).encode() + data
 
 
-def paint_sample(model, layout, images):
-    """The translucent-terminal sample image over the text sample, or None (opaque terminal or not cached)."""
-    theme = model.selected()
-    if model.alpha >= 1 or layout.sample is None or theme is None:
-        return None
-    data = images.get('sample', theme.id, *layout.sample_px)
-    if data is None:
-        return None
-    return goto(layout.sample.x, layout.sample.y).encode() + data
-
-
 def wanted_images(model, layout):
     """Images the screen needs at the current layout's sizes: stages first, then visible thumbnails."""
     themes = model.filtered()
@@ -653,8 +649,6 @@ def wanted_images(model, layout):
         return []
     jobs = [('stage', themes[i].id, *layout.stage_px)
             for i in (model.index, model.index + 1, model.index - 1) if 0 <= i < len(themes)]
-    if model.alpha < 1 and layout.sample:
-        jobs.insert(1, ('sample', themes[model.index].id, *layout.sample_px))
     start = film_start(model, layout)
     jobs += [('thumb', theme.id, *layout.thumb_px) for theme in themes[start:start + len(layout.film)]]
     return jobs
@@ -683,7 +677,7 @@ class NoImages:
 # ---------- terminal ----------
 
 ENTER_SCREEN = b'\x1b[?1049h\x1b[?25l\x1b[?1000h\x1b[?1006h'
-LEAVE_SCREEN = b'\x1b[?1006l\x1b[?1000l\x1b[0m\x1b[?25h\x1b[?1049l'
+LEAVE_SCREEN = b'\x1b]110\x1b\\\x1b]111\x1b\\\x1b[?1006l\x1b[?1000l\x1b[0m\x1b[?25h\x1b[?1049l'
 
 
 def _raise_exit(signum, frame):
@@ -805,24 +799,21 @@ def run(model, previews, backend, state, fd_in=0, fd_out=1):
             selector = selectors.DefaultSelector()
             selector.register(fd_in, selectors.EVENT_READ, 'input')
             selector.register(wake_r, selectors.EVENT_READ, 'wake')
-            layout, stage_due, stage_drawn, sample_drawn, thumbs_drawn = None, 0.0, False, False, set()
+            layout, stage_due, stage_drawn, thumbs_drawn = None, 0.0, False, set()
 
             def repaint():
-                nonlocal stage_due, stage_drawn, sample_drawn
+                nonlocal stage_due, stage_drawn
                 os.write(fd_out, paint_frame(model, layout, NoImages, sixel))
                 if sixel:
                     previews.request(wanted_images(model, layout))
-                stage_due, stage_drawn, sample_drawn = time.monotonic() + STAGE_DELAY, False, False
+                stage_due, stage_drawn = time.monotonic() + STAGE_DELAY, False
                 thumbs_drawn.clear()
 
             while True:
                 if resized['flag']:
                     resized['flag'] = False
                     cols, rows = os.get_terminal_size(fd_out)
-                    cell = cell_size(fd_out)
-                    layout = compute_layout(cols, rows, *cell)
-                    if hasattr(previews, 'sample_settings'):
-                        previews.sample_settings(cell=cell)
+                    layout = compute_layout(cols, rows, *cell_size(fd_out))
                     repaint()
                 # Before the idle delay: wake when it ends. After it: wait for input or a rendered image.
                 now = time.monotonic()
@@ -852,11 +843,6 @@ def run(model, previews, backend, state, fd_in=0, fd_out=1):
                         if stage is not None:
                             os.write(fd_out, stage)
                             stage_drawn = True
-                    if not sample_drawn:
-                        sample = paint_sample(model, layout, previews)
-                        if sample is not None:
-                            os.write(fd_out, sample)
-                            sample_drawn = True
     finally:
         previews.stop()
         signal.signal(signal.SIGWINCH, previous)

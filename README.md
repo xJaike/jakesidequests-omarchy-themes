@@ -10,7 +10,7 @@ Requires Omarchy Quattro with Quickshell, Python 3.11+, ImageMagick, and a Sixel
 omarchy plugin add https://github.com/xJaike/jakesidequests-omarchy-themes --enable
 ```
 
-Click the paintbrush. The picker opens on your current theme. The stage shows the highlighted theme as a miniature desktop (wallpaper, bar, window borders). Beside it, a terminal sample shows a short shell session and a palette showroom: every normal and bright terminal color named in its own color, swatches, the foreground tones, accents and selection. If your foot terminal is translucent (`alpha` below 1 in `foot.ini`), the sample is drawn over the highlighted theme's wallpaper at that same opacity, so you see what your terminals will look like after applying. The whole picker re-tints to the highlighted theme. Browsing never changes your system; only Enter does.
+Click the paintbrush. The picker opens on your current theme. The stage shows the highlighted theme as a miniature desktop (wallpaper, bar, window borders). Beside it, a terminal sample shows a short shell session and a palette showroom: every normal and bright terminal color named in its own color, swatches, the foreground tones, accents and selection. The whole picker re-tints to the highlighted theme: while it is open, the terminal's default colors follow that theme, so a translucent terminal keeps its opacity with the theme's background color. Your terminal colors are restored when the picker closes. Browsing never changes your system; only Enter does.
 
 | Key | Action |
 |---|---|

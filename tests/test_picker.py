@@ -123,37 +123,6 @@ class InstallTests(unittest.TestCase):
             picker.catalog()
 
 
-class FootConfigTests(unittest.TestCase):
-    def setUp(self):
-        temp = tempfile.TemporaryDirectory()
-        self.addCleanup(temp.cleanup)
-        self.dir = Path(temp.name)
-
-    def write(self, name, text):
-        (self.dir / name).write_text(text)
-        return self.dir / name
-
-    def test_alpha_last_setting_wins_across_includes(self):
-        self.write('theme.ini', '[colors]\nalpha=0.5\nbackground=101010\n')
-        ini = self.write('foot.ini', f'[main]\ninclude={self.dir}/theme.ini\nfont=JetBrainsMono Nerd Font:size=9\n'
-                                     '\n[colors-dark]\n# comment\nalpha=0.8\n')
-        self.assertEqual(picker.terminal_alpha(ini), 0.8)
-        self.assertEqual(picker.terminal_font_family(ini), 'JetBrainsMono Nerd Font')
-
-    def test_alpha_from_include_and_defaults(self):
-        self.write('theme.ini', '[colors]\nalpha = 0.6\n')
-        ini = self.write('foot.ini', f'[main]\ninclude={self.dir}/theme.ini\n')
-        self.assertEqual(picker.terminal_alpha(ini), 0.6)
-        self.assertEqual(picker.terminal_alpha(self.dir / 'missing.ini'), 1.0)
-        self.assertIsNone(picker.terminal_font_family(self.dir / 'missing.ini'))
-        bad = self.write('bad.ini', '[colors]\nalpha=lots\n')
-        self.assertEqual(picker.terminal_alpha(bad), 1.0)
-
-    def test_alpha_ignored_outside_color_sections(self):
-        ini = self.write('foot.ini', '[main]\nalpha=0.3\n')
-        self.assertEqual(picker.terminal_alpha(ini), 1.0)
-
-
 class StateTests(unittest.TestCase):
     def setUp(self):
         temp = tempfile.TemporaryDirectory()

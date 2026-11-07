@@ -22,6 +22,7 @@ class ScreenTests(unittest.TestCase):
         self.assertIn(b'\x1b[?1049h', written)
         self.assertIn(b'\x1b[?1049l', written)
         self.assertIn(b'\x1b[?25h', written)
+        self.assertIn(b'\x1b]110\x1b\\\x1b]111\x1b\\', written)
 
     def detect(self, reply):
         reply_r, reply_w = os.pipe()

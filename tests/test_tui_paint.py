@@ -22,6 +22,10 @@ def code(kind, value):
     return f'\x1b[{38 if kind == "fg" else 48};2;{r};{g};{b}m'.encode()
 
 
+def osc(number, value):
+    return f'\x1b]{number};rgb:{value[1:3]}/{value[3:5]}/{value[5:7]}\x1b\\'.encode()
+
+
 class FakeImages:
     def __init__(self, available=()):
         self.available, self.calls = set(available), []
@@ -38,15 +42,19 @@ class PaintTests(unittest.TestCase):
     def frame(self, model, images=None, sixel=True, layout=None):
         return tui.paint_frame(model, layout or self.layout, images or FakeImages(), sixel)
 
-    def test_frame_uses_selected_palette(self):
+    def test_frame_tints_terminal_default_colors_to_selected_theme(self):
         model = make_model()
         out = self.frame(model)
-        self.assertIn(code('bg', model.themes[0].palette['background']), out)
+        self.assertIn(osc(11, model.themes[0].palette['background']), out)
+        self.assertIn(osc(10, model.themes[0].palette['foreground']), out)
         self.assertIn(code('fg', model.themes[0].palette['accent']), out)
+        # Base cells keep the default background so foot's opacity applies to them.
+        self.assertIn(b'\x1b[49m', out)
+        self.assertNotIn(code('bg', model.themes[0].palette['background']), out)
         model.move(1)
         out = self.frame(model)
-        self.assertIn(code('bg', model.themes[1].palette['background']), out)
-        self.assertNotIn(code('bg', model.themes[0].palette['background']), out)
+        self.assertIn(osc(11, model.themes[1].palette['background']), out)
+        self.assertNotIn(osc(11, model.themes[0].palette['background']), out)
 
     def test_sample_shows_ansi_colors(self):
         model = make_model()
@@ -74,17 +82,6 @@ class PaintTests(unittest.TestCase):
         for key in ('bright_red', 'orange', 'brown', 'light_foreground'):
             self.assertIn(code('fg', model.themes[0].palette[key]), out)
         self.assertIn(b'palette', out)
-
-    def test_sample_image_requested_and_painted_only_when_translucent(self):
-        model = make_model()
-        self.assertNotIn('sample', [job[0] for job in tui.wanted_images(model, self.layout)])
-        self.assertIsNone(tui.paint_sample(model, self.layout, FakeImages({('sample', 'a')})))
-        model.alpha = 0.8
-        self.assertIn(('sample', 'a', *self.layout.sample_px), tui.wanted_images(model, self.layout))
-        self.assertIsNone(tui.paint_sample(model, self.layout, FakeImages()))
-        self.assertIn(b'\x1bPqsample-a', tui.paint_sample(model, self.layout, FakeImages({('sample', 'a')})))
-        narrow = tui.compute_layout(99, 40, 10, 20)
-        self.assertNotIn('sample', [job[0] for job in tui.wanted_images(model, narrow)])
 
     def test_cached_thumbs_drawn_placeholders_otherwise(self):
         model = make_model()
